@@ -23,7 +23,7 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(ids)
-	b, err := client.Screencap.Png()
+	b, err := client.Screencap.Png("")
 	if err != nil {
 		log.Fatal(err)
 	}

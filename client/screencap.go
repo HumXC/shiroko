@@ -23,17 +23,10 @@ func (s *screencapClient) Displays() ([]string, error) {
 }
 
 // Png implements screencap.IScreencap.
-func (s *screencapClient) Png() ([]byte, error) {
-	resp, err := s.sc.Png(s.ctx, &pScreencap.PngRequest{})
-	if err != nil {
-		return nil, ParseError(err)
-	}
-	return resp.Data, nil
-}
-
-// PngWithDisplay implements screencap.IScreencap.
-func (s *screencapClient) PngWithDisplay(displayID string) ([]byte, error) {
-	resp, err := s.sc.PngWithDisplay(s.ctx, &pScreencap.PngWithDisplayRequest{DisplayID: displayID})
+func (s *screencapClient) Png(displayID string) ([]byte, error) {
+	resp, err := s.sc.Png(s.ctx, &pScreencap.PngRequest{
+		DisplayID: displayID,
+	})
 	if err != nil {
 		return nil, ParseError(err)
 	}

@@ -20,10 +20,19 @@ func init() {
 		Use: path.Base(os.Args[0]),
 		Run: func(cmd *cobra.Command, args []string) {
 			flags := cmd.Flags()
-			address, _ := flags.GetString("address")
-			port, _ := flags.GetString("port")
-			useDaemon, _ := flags.GetBool("daemon")
+			address, err := flags.GetString("address")
+			if err != nil {
+				panic(err)
+			}
+			port, err := flags.GetString("port")
+			if err != nil {
+				panic(err)
+			}
+			useDaemon, err := flags.GetBool("daemon")
 			mainRun(address, port, useDaemon)
+			if err != nil {
+				panic(err)
+			}
 		},
 	}
 	flags := rootCommand.Flags()
