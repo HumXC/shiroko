@@ -8,15 +8,22 @@ import (
 	"github.com/HumXC/shiroko/tools"
 )
 
+// screencap 工具特有的接口
+type IScreencap interface {
+	Png() ([]byte, error)
+	PngWithDisplay(displayID string) ([]byte, error)
+	Displays() ([]string, error)
+}
 type Screencap struct {
 	Base tools.Tool
+	IScreencap
 }
 
 func (s *Screencap) Png() ([]byte, error) {
 	cmd := android.Command(s.Base.Exe(), "-p")
 	b, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("failed to screencap: %w", err)
+		return nil, err
 	}
 	return b, nil
 }
@@ -24,7 +31,7 @@ func (s *Screencap) PngWithDisplay(displayID string) ([]byte, error) {
 	cmd := android.Command(s.Base.Exe(), "-p", "-d", displayID)
 	b, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("failed to screencap with display id [%s]: %w", displayID, err)
+		return nil, fmt.Errorf("%w: with display id [%s]", err, displayID)
 	}
 	return b, nil
 }
@@ -36,7 +43,7 @@ func (s *Screencap) Displays() ([]string, error) {
 	cmd := android.Command("dumpsys", "SurfaceFlinger", "--display-id")
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("can not get display-id: %w", err)
+		return nil, fmt.Errorf("command error [%s]: %w", cmd.FullCmd(), err)
 	}
 	str := string(output)
 
@@ -46,7 +53,7 @@ func (s *Screencap) Displays() ([]string, error) {
 	}
 	return result, nil
 }
-func NewScreencap() *Screencap {
+func New() *Screencap {
 	s := &Screencap{
 		Base: tools.NewCommandTool("screencap"),
 	}

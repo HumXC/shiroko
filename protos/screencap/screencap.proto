@@ -1,0 +1,25 @@
+syntax = "proto3";
+option go_package = "github.com/HumXC/shiroko/protos/screencap";
+
+package screencap;
+service ScreencapService {
+    rpc Displays(DisplaysRequest) returns (DisplaysResponse);
+    rpc PngWithDisplay(PngWithDisplayRequest) returns (PngResponse);
+    rpc Png(PngRequest) returns (PngResponse);
+}
+
+message DisplaysRequest {}
+
+message DisplaysResponse {
+    repeated string displayIDs = 1;
+}
+
+message PngWithDisplayRequest {
+    string displayID = 1;
+}
+
+message PngRequest {}
+
+message PngResponse {
+    bytes data = 1;
+}

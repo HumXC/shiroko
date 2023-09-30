@@ -1,21 +1,38 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"net"
 	"os"
 
-	"github.com/HumXC/shiroko/tools/screencap"
+	"github.com/HumXC/shiroko/config"
+	"github.com/HumXC/shiroko/server"
 )
 
 func main() {
-	screencap := screencap.NewScreencap()
-	dis, _ := screencap.Displays()
-	b, err := screencap.PngWithDisplay(dis[0])
-	if err != nil {
-		fmt.Println(err)
+	cfg := config.Get()
+	if cfg.UseDaemon {
+		daemon, err := Daemon()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		if !daemon.IAmDaemon {
+			info := map[string]any{
+				"pid": daemon.Pid,
+			}
+			_info, _ := json.MarshalIndent(info, "", "    ")
+			fmt.Println(string(_info))
+			os.Exit(0)
+		}
 	}
-	err = os.WriteFile("/data/local/tmp/abb.png", b, 0755)
+
+	lis, err := net.Listen("tcp", cfg.Address+":"+cfg.Port)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalf("failed to listen: %v", err)
 	}
+	serv := server.New()
+	serv.Serve(lis)
 }
