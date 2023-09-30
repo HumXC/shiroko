@@ -1,0 +1,168 @@
+package minicap
+
+// 参考：https://github.com/DeviceFarmer/minicap/blob/0276fbeff6803c7ff4e39450f7c87a2ba59be25e/run.sh
+import (
+	"errors"
+	"fmt"
+	"os"
+	"path"
+	"strconv"
+	"strings"
+
+	"github.com/HumXC/shiroko/android"
+	"github.com/HumXC/shiroko/binary"
+)
+
+const PROP_ABI = "ro.product.cpu.abi"
+const PROP_SDK = "ro.build.version.sdk"
+const PROP_PRE = "ro.build.version.preview_sdk"
+const PROP_REL = "ro.build.version.release"
+
+type minicap struct {
+	env      []string
+	files    []string
+	args     []string
+	exe      string
+	embedBin string // 在 embed 里的 bin 文件路径
+	embedLib string // 在 embed 里的 lib 文件路径
+	bin      string // 设备里的 bin 文件路径
+	lib      string // 设备里的 lib 文件路径
+}
+
+// Uninstall implements tools.Tool.
+func (m *minicap) Uninstall() error {
+	for _, file := range m.files {
+		err := os.Remove(file)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Files implements tools.Tool.
+func (m *minicap) Files() []string {
+	return m.files
+}
+
+// Init implements tools.Tool.
+func (m *minicap) Init() {
+	m.env = make([]string, 0, 2)
+	m.files = make([]string, 0, 2)
+	m.args = make([]string, 0, 2)
+	abi, sdk, rel := m.Getprop()
+	embedBin := m.getBin(abi, sdk)
+	embedLib := m.getLib(abi, sdk, rel)
+	m.embedBin = embedBin
+	m.embedLib = embedLib
+	if embedLib != "" {
+		m.env = append(m.env, "LD_LIBRARY_PATH="+android.TMP_DIR)
+		lib := path.Join(android.TMP_DIR, path.Base(embedLib))
+		m.files = append(m.files, lib)
+		m.lib = lib
+	}
+	bin := path.Join(android.TMP_DIR, path.Base(m.embedBin))
+	// 如果 embedBin 以 noarch 开头
+	if strings.HasPrefix(m.embedBin, "noarch") {
+		m.exe = "app_process"
+		m.env = append(m.env, "CLASSPATH="+bin)
+		m.args = append(m.args, "/system/bin", "io.devicefarmer.minicap.Main")
+	}
+	m.files = append(m.files, bin)
+	m.bin = bin
+	m.exe = bin
+}
+
+func (minicap) Getprop() (abi, sdk, rel string) {
+	abi = android.Getprop(PROP_ABI)
+	sdk = android.Getprop(PROP_SDK)
+	_pre := android.Getprop(PROP_PRE)
+	_rel := android.Getprop(PROP_REL)
+
+	iPre, _ := strconv.Atoi(_pre)
+	iRel, _ := strconv.Atoi(_rel)
+	rel = strconv.Itoa(iRel + iPre)
+	return
+}
+
+// Args implements tools.Tool.
+func (m *minicap) Args() []string {
+	return m.args
+}
+
+// Install implements tools.Tool.
+func (m *minicap) Install() error {
+	if m.embedBin != "" {
+		b, err := binary.Minicap.ReadFile(m.embedBin)
+		if err != nil {
+			return err
+		}
+		err = os.WriteFile(m.bin, b, 0755)
+		if err != nil {
+			return err
+		}
+	}
+	if m.embedLib != "" {
+		b, err := binary.Minicap.ReadFile(m.embedLib)
+		if err != nil {
+			return err
+		}
+		err = os.WriteFile(m.lib, b, 0755)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Env implements tools.Tool.
+func (m *minicap) Env() []string {
+	return m.env
+}
+
+// Exe implements tools.Tool.
+func (m *minicap) Exe() string {
+	return m.exe
+}
+
+// Health implements tools.Tool.
+func (m *minicap) Health() error {
+	for _, file := range m.files {
+		_, err := os.Stat(file)
+		if err == nil {
+			continue
+		}
+		if errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("file not exist: %s", file)
+		} else {
+			return fmt.Errorf("file stat error: %s: %w", file, err)
+		}
+	}
+	return nil
+}
+
+func (minicap) getBin(abi, sdk string) string {
+	name := "minicap"
+	if _sdk, err := strconv.Atoi(sdk); err == nil && _sdk >= 16 {
+		name = "minicap-nopie"
+	}
+	dir := path.Join(abi, "bin")
+	bin := path.Join(dir, name)
+	if !binary.Minicap.IsExist(bin) {
+		return "noarch/minicap.apk"
+	}
+	return bin
+}
+
+func (minicap) getLib(abi, sdk, rel string) string {
+	libDir := path.Join(abi, "lib")
+	lib := path.Join(libDir, "android-"+rel)
+	if _, err := binary.Minicap.ReadDir(lib); err == nil {
+		return path.Join(lib, "minicap.so")
+	}
+	lib = path.Join(libDir, "android-"+sdk)
+	if _, err := binary.Minicap.ReadDir(lib); err == nil {
+		return path.Join(lib, "minicap.so")
+	}
+	return ""
+}

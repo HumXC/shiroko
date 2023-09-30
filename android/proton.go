@@ -2,15 +2,17 @@ package android
 
 import "os/exec"
 
-func Getprop(key string) (string, error) {
-	cmd := exec.Command("getprop", key)
-	err := cmd.Run()
-	if err != nil {
-		return "", err
+var TestProp map[string]string
+
+func Getprop(key string) string {
+	if TestProp != nil {
+		return TestProp[key]
 	}
+
+	cmd := exec.Command("getprop", key)
 	output, err := cmd.Output()
 	if err != nil {
-		return "", err
+		panic(err)
 	}
-	return string(output), nil
+	return string(output[:len(output)-1])
 }
