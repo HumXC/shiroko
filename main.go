@@ -2,26 +2,20 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/HumXC/shiroko/android"
-	"github.com/HumXC/shiroko/tools/minicap"
+	"github.com/HumXC/shiroko/tools/screencap"
 )
 
 func main() {
-	minicap := minicap.NewMinicap()
-	err := minicap.Base.Health()
+	screencap := screencap.NewScreencap()
+	dis, _ := screencap.Displays()
+	b, err := screencap.PngWithDisplay(dis[0])
 	if err != nil {
 		fmt.Println(err)
-		err := minicap.Base.Install()
+	}
+	err = os.WriteFile("/data/local/tmp/abb.png", b, 0755)
+	if err != nil {
 		fmt.Println(err)
 	}
-	args := append(minicap.Base.Args())
-	cmd := android.Command(minicap.Base.Exe(), args...)
-	cmd.SetEnv(minicap.Base.Env())
-	out, err := cmd.Output()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(string(out))
 }
