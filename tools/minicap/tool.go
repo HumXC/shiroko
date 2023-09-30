@@ -11,6 +11,7 @@ import (
 
 	"github.com/HumXC/shiroko/android"
 	"github.com/HumXC/shiroko/binary"
+	"github.com/HumXC/shiroko/tools/common"
 )
 
 const PROP_ABI = "ro.product.cpu.abi"
@@ -18,7 +19,7 @@ const PROP_SDK = "ro.build.version.sdk"
 const PROP_PRE = "ro.build.version.preview_sdk"
 const PROP_REL = "ro.build.version.release"
 
-type minicap struct {
+type minicapBase struct {
 	env      []string
 	files    []string
 	args     []string
@@ -29,8 +30,20 @@ type minicap struct {
 	lib      string // 设备里的 lib 文件路径
 }
 
+// Description implements common.Tool.
+func (*minicapBase) Description() string {
+	return "https://github.com/DeviceFarmer/minicap"
+}
+
+var _ common.Tool = &minicapBase{}
+
+// Name implements tools.Tool.
+func (*minicapBase) Name() string {
+	return "minicap"
+}
+
 // Uninstall implements tools.Tool.
-func (m *minicap) Uninstall() error {
+func (m *minicapBase) Uninstall() error {
 	for _, file := range m.files {
 		err := os.Remove(file)
 		if err != nil {
@@ -41,12 +54,12 @@ func (m *minicap) Uninstall() error {
 }
 
 // Files implements tools.Tool.
-func (m *minicap) Files() []string {
+func (m *minicapBase) Files() []string {
 	return m.files
 }
 
 // Init implements tools.Tool.
-func (m *minicap) Init() {
+func (m *minicapBase) Init() {
 	m.env = make([]string, 0, 2)
 	m.files = make([]string, 0, 2)
 	m.args = make([]string, 0, 2)
@@ -73,7 +86,7 @@ func (m *minicap) Init() {
 	m.exe = bin
 }
 
-func (minicap) Getprop() (abi, sdk, rel string) {
+func (minicapBase) Getprop() (abi, sdk, rel string) {
 	abi = android.Getprop(PROP_ABI)
 	sdk = android.Getprop(PROP_SDK)
 	_pre := android.Getprop(PROP_PRE)
@@ -86,12 +99,12 @@ func (minicap) Getprop() (abi, sdk, rel string) {
 }
 
 // Args implements tools.Tool.
-func (m *minicap) Args() []string {
+func (m *minicapBase) Args() []string {
 	return m.args
 }
 
 // Install implements tools.Tool.
-func (m *minicap) Install() error {
+func (m *minicapBase) Install() error {
 	if m.embedBin != "" {
 		b, err := binary.Minicap.ReadFile(m.embedBin)
 		if err != nil {
@@ -116,17 +129,17 @@ func (m *minicap) Install() error {
 }
 
 // Env implements tools.Tool.
-func (m *minicap) Env() []string {
+func (m *minicapBase) Env() []string {
 	return m.env
 }
 
 // Exe implements tools.Tool.
-func (m *minicap) Exe() string {
+func (m *minicapBase) Exe() string {
 	return m.exe
 }
 
 // Health implements tools.Tool.
-func (m *minicap) Health() error {
+func (m *minicapBase) Health() error {
 	for _, file := range m.files {
 		_, err := os.Stat(file)
 		if err == nil {
@@ -141,7 +154,7 @@ func (m *minicap) Health() error {
 	return nil
 }
 
-func (minicap) getBin(abi, sdk string) string {
+func (minicapBase) getBin(abi, sdk string) string {
 	name := "minicap"
 	if _sdk, err := strconv.Atoi(sdk); err == nil && _sdk >= 16 {
 		name = "minicap-nopie"
@@ -154,7 +167,7 @@ func (minicap) getBin(abi, sdk string) string {
 	return bin
 }
 
-func (minicap) getLib(abi, sdk, rel string) string {
+func (minicapBase) getLib(abi, sdk, rel string) string {
 	libDir := path.Join(abi, "lib")
 	lib := path.Join(libDir, "android-"+rel)
 	if _, err := binary.Minicap.ReadDir(lib); err == nil {

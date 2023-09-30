@@ -9,7 +9,7 @@ import (
 
 type serverScreencap struct {
 	pScreencap.UnimplementedScreencapServiceServer
-	screencap *screencap.Screencap
+	screencap *screencap.ScreencapImpl
 }
 
 func NewScreencapServer() *serverScreencap {

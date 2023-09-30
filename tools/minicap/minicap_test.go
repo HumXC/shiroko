@@ -6,7 +6,7 @@ import (
 	"github.com/HumXC/shiroko/android"
 )
 
-var mc minicap = minicap{
+var mc minicapBase = minicapBase{
 	env:   make([]string, 0, 2),
 	files: make([]string, 0, 2),
 	args:  make([]string, 0, 2),

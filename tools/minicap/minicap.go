@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/HumXC/shiroko/android"
-	"github.com/HumXC/shiroko/tools"
+	"github.com/HumXC/shiroko/tools/common"
 )
 
 type Info struct {
@@ -20,11 +20,19 @@ type Info struct {
 	Secure   bool    `json:"secure"`
 	Rotation int16   `json:"rotation"`
 }
-type Minicap struct {
-	Base tools.Tool
+
+type IMinicap interface {
+	Info() (Info, error)
 }
 
-func (m *Minicap) Info() (Info, error) {
+var Minicap *MinicapImpl = New()
+
+type MinicapImpl struct {
+	Base common.Tool
+	IMinicap
+}
+
+func (m *MinicapImpl) Info() (Info, error) {
 	result := Info{}
 	cmd := android.Command(m.Base.Exe(), append(m.Base.Args(), "-i")...)
 	cmd.SetEnv(m.Base.Env())
@@ -40,17 +48,16 @@ func (m *Minicap) Info() (Info, error) {
 }
 
 // TODO
-func (m *Minicap) Run(RWidth, RHeight, VWidth, VHeight, Orientation int32) {
+func (m *MinicapImpl) Run(RWidth, RHeight, VWidth, VHeight, Orientation int32) {
 	// args := append(m.Base.Args(), "-P", fmt.Sprintf("%dx%d@%dx%d/%d", RWidth, RHeight, VWidth, VHeight, Orientation))
 	// cmd := exec.Command(m.Base.Exe(), args...)
 	// cmd.Start()
 	// ctx, _ := context.WithTimeout(context.Background(), 1000*time.Millisecond)
 
 }
-func NewMinicap() *Minicap {
-	m := &Minicap{
-		Base: &minicap{},
+func New() *MinicapImpl {
+	m := &MinicapImpl{
+		Base: &minicapBase{},
 	}
-	m.Base.Init()
 	return m
 }

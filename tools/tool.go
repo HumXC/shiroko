@@ -1,20 +1,54 @@
 package tools
 
-type Tool interface {
-	// 检查工具是否可用
-	// error 为 nil 时表示可用
-	Health() error
-	// 将工具部署到设备
-	Install() error
-	Uninstall() error
-	// 返回运行时需要的环境变量，例如: LD_LIBRARY_PATH=/data/local/tmp/
-	Env() []string
-	// 返回可执行文件的路径
-	Exe() string
-	// 返回需要的默认参数
-	Args() []string
-	// 返回所有部署在设备上的文件
-	Files() []string
-	// 在被调用时初始化，由 tools 包调用
-	Init()
+import (
+	"reflect"
+
+	"github.com/HumXC/shiroko/tools/common"
+	minicap "github.com/HumXC/shiroko/tools/minicap"
+	"github.com/HumXC/shiroko/tools/screencap"
+	"github.com/spf13/cobra"
+)
+
+var allTools map[string]common.Tool = make(map[string]common.Tool)
+
+func Init(cmd *cobra.Command) {
+	register(cmd, minicap.Minicap)
+	register(cmd, screencap.Screencap)
+}
+
+// 由 tool 的 init 函数内调用
+func register(cmd *cobra.Command, t any) {
+	val := reflect.ValueOf(t).Elem()
+	typ := val.Type()
+
+	// 检查是否存在 "Base" 字段
+	baseField := val.FieldByName("Base")
+	if !baseField.IsValid() {
+		panic("Base field not found in: " + typ.String())
+	}
+
+	base, ok := baseField.Interface().(common.Tool)
+	if !ok {
+		panic("failed Base is not implements tools.Tool in: " + typ.String())
+	}
+	base.Init()
+	allTools[base.Name()] = base
+
+	to, ok := t.(common.UseCommand)
+	if ok {
+		subCmd := &cobra.Command{
+			Use:   base.Name(),
+			Short: base.Description(),
+		}
+		to.RegCommand(subCmd)
+		cmd.AddCommand(subCmd)
+	}
+}
+
+func Names() []string {
+	names := make([]string, 0, len(allTools))
+	for name := range allTools {
+		names = append(names, name)
+	}
+	return names
 }

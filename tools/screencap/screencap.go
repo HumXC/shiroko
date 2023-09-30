@@ -2,10 +2,12 @@ package screencap
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/HumXC/shiroko/android"
-	"github.com/HumXC/shiroko/tools"
+	"github.com/HumXC/shiroko/tools/common"
+	"github.com/spf13/cobra"
 )
 
 // screencap 工具特有的接口
@@ -14,12 +16,16 @@ type IScreencap interface {
 	PngWithDisplay(displayID string) ([]byte, error)
 	Displays() ([]string, error)
 }
-type Screencap struct {
-	Base tools.Tool
+
+var Screencap *ScreencapImpl = New()
+
+type ScreencapImpl struct {
+	Base common.Tool
 	IScreencap
+	common.UseCommand
 }
 
-func (s *Screencap) Png() ([]byte, error) {
+func (s *ScreencapImpl) Png() ([]byte, error) {
 	cmd := android.Command(s.Base.Exe(), "-p")
 	b, err := cmd.Output()
 	if err != nil {
@@ -27,7 +33,7 @@ func (s *Screencap) Png() ([]byte, error) {
 	}
 	return b, nil
 }
-func (s *Screencap) PngWithDisplay(displayID string) ([]byte, error) {
+func (s *ScreencapImpl) PngWithDisplay(displayID string) ([]byte, error) {
 	cmd := android.Command(s.Base.Exe(), "-p", "-d", displayID)
 	b, err := cmd.Output()
 	if err != nil {
@@ -38,7 +44,7 @@ func (s *Screencap) PngWithDisplay(displayID string) ([]byte, error) {
 
 // 返回所需的 Display ID
 // 通过运行 dumpsys SurfaceFlinger --display-id 获取
-func (s *Screencap) Displays() ([]string, error) {
+func (s *ScreencapImpl) Displays() ([]string, error) {
 	result := make([]string, 0, 1)
 	cmd := android.Command("dumpsys", "SurfaceFlinger", "--display-id")
 	output, err := cmd.Output()
@@ -53,10 +59,55 @@ func (s *Screencap) Displays() ([]string, error) {
 	}
 	return result, nil
 }
-func New() *Screencap {
-	s := &Screencap{
-		Base: tools.NewCommandTool("screencap"),
+
+// Init implements tools.Tool.
+func (*ScreencapImpl) Init(*cobra.Command) {}
+
+func (s *ScreencapImpl) RegCommand(c *cobra.Command) {
+	displayID := ""
+	cmdDisplays := &cobra.Command{
+		Use:   "displays",
+		Short: "show displays ID",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			displays, err := s.Displays()
+			if err != nil {
+				return err
+			}
+			for _, display := range displays {
+				fmt.Println(display)
+			}
+			return nil
+		},
 	}
-	s.Base.Init()
+	cmdPng := &cobra.Command{
+		Use:   "png",
+		Short: "Get screenshot and write to stdout",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if displayID == "" {
+				result, err := s.Png()
+				if err != nil {
+					return err
+				}
+				_, _ = os.Stdout.Write(result)
+				return nil
+			} else {
+				result, err := s.PngWithDisplay(displayID)
+				if err != nil {
+					return err
+				}
+				_, _ = os.Stdout.Write(result)
+				return nil
+			}
+		},
+	}
+	pngFlags := cmdPng.Flags()
+	pngFlags.StringVarP(&displayID, "display-id", "d", "", "display id")
+	c.AddCommand(cmdDisplays)
+	c.AddCommand(cmdPng)
+}
+func New() *ScreencapImpl {
+	s := &ScreencapImpl{
+		Base: &screenBase{cmd: "screencap"},
+	}
 	return s
 }
