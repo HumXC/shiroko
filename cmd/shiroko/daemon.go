@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
+
+	"github.com/shirou/gopsutil/process"
 )
 
 type Daemonize struct {
@@ -36,4 +39,35 @@ func Daemon() (Daemonize, error) {
 		IAmDaemon: false,
 		Pid:       cmd.Process.Pid,
 	}, nil
+}
+
+func Kill() {
+	selfExe, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+
+	// 获取所有进程
+	processes, err := process.Processes()
+	if err != nil {
+		panic(err)
+	}
+
+	// 遍历所有进程
+	for _, proc := range processes {
+		exe, err := proc.Exe()
+		if err != nil {
+			continue
+		}
+		// 以 Daemon 运行的进程名可能会是 "/data/local/tmp/shiroko (deleted)"
+		exe = strings.TrimSuffix(exe, " (deleted)")
+		if exe == selfExe {
+			pid := proc.Pid
+			// 检查 PID 是否是当前进程
+			if pid != int32(os.Getpid()) {
+				fmt.Printf("Killing process %d with name %s\n", pid, exe)
+				_ = proc.Kill()
+			}
+		}
+	}
 }

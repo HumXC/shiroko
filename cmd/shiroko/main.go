@@ -16,17 +16,28 @@ import (
 var rootCommand *cobra.Command
 
 func init() {
-	cfg := DefaultConfig()
 	rootCommand = &cobra.Command{
 		Use: path.Base(os.Args[0]),
 		Run: func(cmd *cobra.Command, args []string) {
-			mainRun(*cfg)
+			flags := cmd.Flags()
+			address, _ := flags.GetString("address")
+			port, _ := flags.GetString("port")
+			useDaemon, _ := flags.GetBool("daemon")
+			mainRun(address, port, useDaemon)
 		},
 	}
 	flags := rootCommand.Flags()
-	flags.StringVarP(&cfg.Address, "address", "a", cfg.Address, "Listen address")
-	flags.StringVarP(&cfg.Port, "port", "p", cfg.Port, "Listen port")
-	flags.BoolVarP(&cfg.UseDaemon, "daemon", "d", cfg.UseDaemon, "Run as daemon")
+	flags.StringP("address", "a", "0.0.0.0", "Listen address")
+	flags.StringP("port", "p", "15600", "Listen port")
+	flags.BoolP("daemon", "d", false, "Run as daemon")
+	rootCommand.AddCommand(&cobra.Command{
+		Use:   "kill",
+		Short: "kill all daemon",
+		Run: func(cmd *cobra.Command, args []string) {
+			Kill()
+		},
+	})
+
 }
 func main() {
 	tools.Init(rootCommand)
@@ -36,8 +47,8 @@ func main() {
 	}
 }
 
-func mainRun(cfg Config) {
-	if cfg.UseDaemon {
+func mainRun(address, port string, useDaemon bool) {
+	if useDaemon {
 		daemon, err := Daemon()
 		if err != nil {
 			fmt.Println(err)
@@ -52,7 +63,7 @@ func mainRun(cfg Config) {
 			os.Exit(0)
 		}
 	}
-	lis, err := net.Listen("tcp", cfg.Address+":"+cfg.Port)
+	lis, err := net.Listen("tcp", address+":"+port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
