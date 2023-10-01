@@ -10,17 +10,20 @@ import (
 )
 
 // TODO: 日志
-var allTools map[string]common.Tool = make(map[string]common.Tool)
+var allTools map[string]common.BaseTool = make(map[string]common.BaseTool)
 
+// 由 main 包调用
 func Init(cmd *cobra.Command) {
 	register(cmd, minicap.Minicap)
 	register(cmd, screencap.Screencap)
 	setCommand(cmd)
 }
 
-// 由 tool 的 init 函数内调用
-func register(cmd *cobra.Command, t any) {
-	val := reflect.ValueOf(t).Elem()
+// 添加工具到全局的 allTools
+// 会验证 tool 是否符合要求：具有 Base 字段且实现了 common.BaseTool
+// 如果实现了 common.UseCommand 接口, 则调用此接口的函数
+func register(cmd *cobra.Command, tool any) {
+	val := reflect.ValueOf(tool).Elem()
 	typ := val.Type()
 
 	// 检查是否存在 "Base" 字段
@@ -29,14 +32,14 @@ func register(cmd *cobra.Command, t any) {
 		panic("Base field not found in: " + typ.String())
 	}
 
-	base, ok := baseField.Interface().(common.Tool)
+	base, ok := baseField.Interface().(common.BaseTool)
 	if !ok {
 		panic("failed Base is not implements tools.Tool in: " + typ.String())
 	}
 	base.Init()
 	allTools[base.Name()] = base
 
-	to, ok := t.(common.UseCommand)
+	to, ok := tool.(common.UseCommand)
 	if ok {
 		subCmd := &cobra.Command{
 			Use:   base.Name(),
@@ -45,12 +48,4 @@ func register(cmd *cobra.Command, t any) {
 		to.RegCommand(subCmd)
 		cmd.AddCommand(subCmd)
 	}
-}
-
-func Names() []string {
-	names := make([]string, 0, len(allTools))
-	for name := range allTools {
-		names = append(names, name)
-	}
-	return names
 }

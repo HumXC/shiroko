@@ -19,10 +19,11 @@ type IScreencap interface {
 var Screencap *ScreencapImpl = New()
 
 type ScreencapImpl struct {
-	Base common.Tool
-	IScreencap
-	common.UseCommand
+	Base common.BaseTool
 }
+
+var _ IScreencap = &ScreencapImpl{}
+var _ common.UseCommand = &ScreencapImpl{}
 
 // Init implements tools.Tool.
 func (*ScreencapImpl) Init(*cobra.Command) {}

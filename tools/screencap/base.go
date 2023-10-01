@@ -4,7 +4,7 @@ import (
 	"github.com/HumXC/shiroko/tools/common"
 )
 
-var _ common.Tool = &screenBase{}
+var _ common.BaseTool = &screenBase{}
 
 type screenBase struct {
 	cmd string

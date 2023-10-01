@@ -35,7 +35,7 @@ func (*minicapBase) Description() string {
 	return "https://github.com/DeviceFarmer/minicap"
 }
 
-var _ common.Tool = &minicapBase{}
+var _ common.BaseTool = &minicapBase{}
 
 // Name implements tools.Tool.
 func (*minicapBase) Name() string {

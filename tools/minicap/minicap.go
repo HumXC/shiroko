@@ -36,11 +36,12 @@ type IMinicap interface {
 var Minicap *MinicapImpl = New()
 
 type MinicapImpl struct {
-	Base common.Tool
-	IMinicap
+	Base common.BaseTool
 	proc *os.Process
 	conn net.Conn
 }
+
+var _ IMinicap = &MinicapImpl{}
 
 func (m *MinicapImpl) Info() (Info, error) {
 	result := Info{}

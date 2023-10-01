@@ -12,8 +12,9 @@ type serverMinicap struct {
 	pMinicap.UnimplementedMinicapServer
 	minicap minicap.IMinicap
 }
+
 type grpcMinicapWriter struct {
-	stream pMinicap.Minicap_CatServer // 假设您的gRPC服务叫做"IMinicap"
+	stream pMinicap.Minicap_CatServer
 }
 
 func (w *grpcMinicapWriter) Write(p []byte) (n int, err error) {

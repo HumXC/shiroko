@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type Tool interface {
+type BaseTool interface {
 	Name() string
 	// 简短的描述
 	Description() string
@@ -26,7 +26,7 @@ type Tool interface {
 	Args() []string
 	// 返回所有部署在设备上的文件
 	Files() []string
-	// 在被调用时初始化，由 tools 包调用
+	// 在使用前进行初始化，由 tools 包调用
 	Init()
 }
 type UseCommand interface {
