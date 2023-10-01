@@ -1,7 +1,9 @@
 package common
 
 import (
+	"fmt"
 	"os/exec"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -37,4 +39,8 @@ func CommandHealth(cmd string) error {
 		return err
 	}
 	return nil
+}
+
+func FullCommand(cmd *exec.Cmd) string {
+	return fmt.Sprint(strings.Join(cmd.Env, " "), " ", strings.Join(cmd.Args, " "))
 }

@@ -8,11 +8,11 @@ import (
 )
 
 type serverScreencap struct {
-	pScreencap.UnimplementedScreencapServiceServer
+	pScreencap.UnimplementedScreencapServer
 	screencap screencap.IScreencap
 }
 
-var _ pScreencap.ScreencapServiceServer = &serverScreencap{}
+var _ pScreencap.ScreencapServer = &serverScreencap{}
 
 // Png implements screencap.ScreencapServiceServer.
 func (s *serverScreencap) Png(ctx context.Context, req *pScreencap.PngRequest) (*pScreencap.PngResponse, error) {

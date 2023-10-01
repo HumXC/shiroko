@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package minicap;
+option go_package = "github.com/HumXC/shiroko/protos/minicap";
+
+message InfoResponse {
+    int32 Id = 1;
+    int32 Width = 2;
+    int32 Height = 3;
+    float Xdpi = 4;
+    float Ydpi = 5;
+    float Size = 6;
+    float Density = 7;
+    float Fps = 8;
+    bool Secure = 9;
+    int32 Rotation = 10;
+}
+
+message StartRequest {
+    int32 RWidth = 1;
+    int32 RHeight = 2;
+    int32 VWidth = 3;
+    int32 VHeight = 4;
+    int32 Orientation = 5;
+}
+
+// 不带任何字段的消息，可以用于没有参数或返回值的方法
+message Empty {}
+
+// Minicap服务定义
+service Minicap {
+    rpc Info(Empty) returns (InfoResponse);
+    rpc Start(StartRequest) returns (Empty);
+    rpc Stop(Empty) returns (Empty);
+    rpc Cat(Empty) returns (stream DataChunk);
+}
+
+// 表示数据块的消息
+message DataChunk {
+    bytes data = 1;
+}

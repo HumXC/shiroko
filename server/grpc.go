@@ -1,7 +1,8 @@
 package server
 
 import (
-	pScreenca "github.com/HumXC/shiroko/protos/screencap"
+	pMinicap "github.com/HumXC/shiroko/protos/minicap"
+	pScreencap "github.com/HumXC/shiroko/protos/screencap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,6 +18,7 @@ type Server struct {
 
 func New() *grpc.Server {
 	grpcServer := grpc.NewServer()
-	pScreenca.RegisterScreencapServiceServer(grpcServer, NewScreencapServer())
+	pScreencap.RegisterScreencapServer(grpcServer, NewScreencapServer())
+	pMinicap.RegisterMinicapServer(grpcServer, NewMinicapServer())
 	return grpcServer
 }

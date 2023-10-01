@@ -9,11 +9,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO: 日志
 var allTools map[string]common.Tool = make(map[string]common.Tool)
 
 func Init(cmd *cobra.Command) {
 	register(cmd, minicap.Minicap)
 	register(cmd, screencap.Screencap)
+	setCommand(cmd)
 }
 
 // 由 tool 的 init 函数内调用

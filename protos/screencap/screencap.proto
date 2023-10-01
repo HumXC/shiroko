@@ -2,7 +2,7 @@ syntax = "proto3";
 option go_package = "github.com/HumXC/shiroko/protos/screencap";
 
 package screencap;
-service ScreencapService {
+service Screencap {
     rpc Displays(DisplaysRequest) returns (DisplaysResponse);
     rpc Png(PngRequest) returns (PngResponse);
 }

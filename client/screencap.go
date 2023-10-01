@@ -9,7 +9,7 @@ import (
 )
 
 type screencapClient struct {
-	sc  pScreencap.ScreencapServiceClient
+	sc  pScreencap.ScreencapClient
 	ctx context.Context
 }
 
@@ -35,7 +35,7 @@ func (s *screencapClient) Png(displayID string) ([]byte, error) {
 
 func initScreencap(ctx context.Context, conn *grpc.ClientConn) tScreencap.IScreencap {
 	return &screencapClient{
-		sc:  pScreencap.NewScreencapServiceClient(conn),
+		sc:  pScreencap.NewScreencapClient(conn),
 		ctx: ctx,
 	}
 }
