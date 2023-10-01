@@ -44,8 +44,11 @@ func register(cmd *cobra.Command, tool any) {
 		subCmd := &cobra.Command{
 			Use:   base.Name(),
 			Short: base.Description(),
+			Run: func(cmd *cobra.Command, args []string) {
+				cmd.Help()
+			},
 		}
-		to.RegCommand(subCmd)
 		cmd.AddCommand(subCmd)
+		to.RegCommand(subCmd)
 	}
 }

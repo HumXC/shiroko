@@ -2,15 +2,16 @@ package minicap
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/HumXC/shiroko/android"
 	"github.com/HumXC/shiroko/tools/common"
+	"github.com/spf13/cobra"
 )
 
 type Info struct {
@@ -41,7 +42,83 @@ type MinicapImpl struct {
 	conn net.Conn
 }
 
+// RegCommand implements common.UseCommand.
+func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
+	cmdStart := &cobra.Command{
+		Use:   "start",
+		Short: "Start minicap",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			flags := cmd.Flags()
+			rw, err := flags.GetInt32("rw")
+			if err != nil {
+				panic(err)
+			}
+			rh, err := flags.GetInt32("rh")
+			if err != nil {
+				panic(err)
+			}
+			vw, err := flags.GetInt32("vw")
+			if err != nil {
+				panic(err)
+			}
+			vh, err := flags.GetInt32("vh")
+			if err != nil {
+				panic(err)
+			}
+			o, err := flags.GetInt32("o")
+			if err != nil {
+				panic(err)
+			}
+			if rw == 0 || rh == 0 || vw == 0 || vh == 0 {
+				cmd.Help()
+				return nil
+			}
+			_ = m.Start(rw, rh, vw, vh, o)
+			for {
+				time.Sleep(1 * time.Second)
+			}
+		},
+	}
+	flags := cmdStart.Flags()
+	flags.Int32("rw", 0, "Real wigth")
+	flags.Int32("rh", 0, "Real height")
+	flags.Int32("vw", 0, "Virtual wigth")
+	flags.Int32("vh", 0, "Virtual height")
+	flags.Int32("o", 0, "Orientation")
+
+	cmdInfo := &cobra.Command{
+		Use:   "info",
+		Short: "Show display info",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			info, err := m.Info()
+			if err != nil {
+				return err
+			}
+			_info, _ := json.MarshalIndent(info, "", "    ")
+			fmt.Println(string(_info))
+			return nil
+		},
+	}
+
+	cmdCat := &cobra.Command{
+		Use:   "cat",
+		Short: "Connect and output minicap socket",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			reader, err := m.Cat()
+			if err != nil {
+				return err
+			}
+			_, _ = io.Copy(os.Stdout, reader)
+			return nil
+		},
+	}
+	cmd.AddCommand(cmdStart)
+	cmd.AddCommand(cmdInfo)
+	cmd.AddCommand(cmdCat)
+}
+
 var _ IMinicap = &MinicapImpl{}
+var _ common.UseCommand = &MinicapImpl{}
 
 func (m *MinicapImpl) Info() (Info, error) {
 	result := Info{}
@@ -91,10 +168,6 @@ func (m *MinicapImpl) Stop() error {
 }
 
 func (m *MinicapImpl) Cat() (io.ReadCloser, error) {
-	if m.proc == nil {
-		return nil, errors.New("minicap not running")
-	}
-
 	conn, err := net.Dial("unix", "@minicap")
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect minicap: %w", err)
