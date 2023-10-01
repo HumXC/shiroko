@@ -6,6 +6,7 @@ import (
 	"github.com/HumXC/shiroko/tools/minicap"
 	"github.com/HumXC/shiroko/tools/screencap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Client struct {
@@ -15,7 +16,8 @@ type Client struct {
 }
 
 func New(target string, opts ...grpc.DialOption) (*Client, error) {
-	conn, err := grpc.Dial(target, opts...)
+	_opts := append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	conn, err := grpc.Dial(target, _opts...)
 	if err != nil {
 		return nil, err
 	}

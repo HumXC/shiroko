@@ -13,6 +13,23 @@ type minicapClient struct {
 	mm  pMinicap.MinicapClient
 	ctx context.Context
 }
+
+// Jpg implements minicap.IMinicap.
+func (m *minicapClient) Jpg(rWidth int32, rHeight int32, vWidth int32, vHeight int32, orientation int32, quality int32) ([]byte, error) {
+	resp, err := m.mm.Jpg(m.ctx, &pMinicap.JpgRequest{
+		RWidth:      rWidth,
+		RHeight:     rHeight,
+		VWidth:      vWidth,
+		VHeight:     vHeight,
+		Orientation: orientation,
+		Quality:     quality,
+	})
+	if err != nil {
+		return nil, ParseError(err)
+	}
+	return resp.Data, nil
+}
+
 type grpcCatReadCloser struct {
 	stream pMinicap.Minicap_CatClient
 	buf    []byte
@@ -72,13 +89,14 @@ func (m *minicapClient) Info() (tMinicap.Info, error) {
 }
 
 // Start implements minicap.IMinicap.
-func (m *minicapClient) Start(RWidth, RHeight, VWidth, VHeight, Orientation int32) error {
+func (m *minicapClient) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate int32) error {
 	_, err := m.mm.Start(m.ctx, &pMinicap.StartRequest{
-		RWidth:      RWidth,
-		RHeight:     RHeight,
-		VWidth:      VWidth,
-		VHeight:     VHeight,
-		Orientation: Orientation})
+		RWidth:      rWidth,
+		RHeight:     rHeight,
+		VWidth:      vWidth,
+		VHeight:     vHeight,
+		Orientation: orientation,
+	})
 	if err != nil {
 		return ParseError(err)
 	}

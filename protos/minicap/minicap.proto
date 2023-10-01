@@ -22,8 +22,21 @@ message StartRequest {
     int32 VWidth = 3;
     int32 VHeight = 4;
     int32 Orientation = 5;
+    int32 Rate = 6;
 }
 
+message JpgRequest {
+    int32 RWidth = 1;
+    int32 RHeight = 2;
+    int32 VWidth = 3;
+    int32 VHeight = 4;
+    int32 Orientation = 5;
+    int32 Quality = 6;
+}
+
+message JpgResponse {
+    bytes data = 1;
+}
 // 不带任何字段的消息，可以用于没有参数或返回值的方法
 message Empty {}
 
@@ -33,6 +46,7 @@ service Minicap {
     rpc Start(StartRequest) returns (Empty);
     rpc Stop(Empty) returns (Empty);
     rpc Cat(Empty) returns (stream DataChunk);
+    rpc Jpg(JpgRequest) returns(JpgResponse);
 }
 
 // 表示数据块的消息

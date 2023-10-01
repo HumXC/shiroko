@@ -13,6 +13,15 @@ type serverMinicap struct {
 	minicap minicap.IMinicap
 }
 
+// Jpg implements minicap.MinicapServer.
+func (s *serverMinicap) Jpg(ctx context.Context, req *pMinicap.JpgRequest) (*pMinicap.JpgResponse, error) {
+	data, err := s.minicap.Jpg(req.RWidth, req.RHeight, req.VWidth, req.VHeight, req.Orientation, req.Quality)
+	if err != nil {
+		return &pMinicap.JpgResponse{}, MakeError("failed to start minicap", err)
+	}
+	return &pMinicap.JpgResponse{Data: data}, nil
+}
+
 type grpcMinicapWriter struct {
 	stream pMinicap.Minicap_CatServer
 }
@@ -57,7 +66,7 @@ func (s *serverMinicap) Info(context.Context, *pMinicap.Empty) (*pMinicap.InfoRe
 
 // Start implements minicap.MinicapServer.
 func (s *serverMinicap) Start(ctx context.Context, req *pMinicap.StartRequest) (*pMinicap.Empty, error) {
-	err := s.minicap.Start(req.RWidth, req.RHeight, req.VWidth, req.VHeight, req.Orientation)
+	err := s.minicap.Start(req.RWidth, req.RHeight, req.VWidth, req.VHeight, req.Orientation, req.Rate)
 	if err != nil {
 		return &pMinicap.Empty{}, MakeError("failed to start minicap", err)
 	}

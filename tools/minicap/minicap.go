@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 
 	"github.com/HumXC/shiroko/android"
@@ -29,7 +30,8 @@ type Info struct {
 
 type IMinicap interface {
 	Info() (Info, error)
-	Start(RWidth, RHeight, VWidth, VHeight, Orientation int32) error
+	Start(rWidth, rHeight, vWidth, vHeight, orientation, rate int32) error
+	Jpg(rWidth, rHeight, vWidth, vHeight, orientation, quality int32) ([]byte, error)
 	Stop() error
 	Cat() (io.ReadCloser, error)
 }
@@ -46,7 +48,7 @@ type MinicapImpl struct {
 func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 	cmdStart := &cobra.Command{
 		Use:   "start",
-		Short: "Start minicap",
+		Short: "Start minicap, if either vw or vh is set to 0, they will be automatically set.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			flags := cmd.Flags()
 			rw, err := flags.GetInt32("rw")
@@ -69,11 +71,21 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 			if err != nil {
 				panic(err)
 			}
+			rate, err := flags.GetInt32("r")
+			if err != nil {
+				panic(err)
+			}
+			if vw == 0 {
+				vw = rw
+			}
+			if vh == 0 {
+				vh = rh
+			}
 			if rw == 0 || rh == 0 || vw == 0 || vh == 0 {
 				cmd.Help()
 				return nil
 			}
-			_ = m.Start(rw, rh, vw, vh, o)
+			_ = m.Start(rw, rh, vw, vh, o, rate)
 			for {
 				time.Sleep(1 * time.Second)
 			}
@@ -85,6 +97,62 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 	flags.Int32("vw", 0, "Virtual wigth")
 	flags.Int32("vh", 0, "Virtual height")
 	flags.Int32("o", 0, "Orientation")
+	flags.Int32("r", 30, "Frame rate (frames/s)")
+
+	cmdJpg := &cobra.Command{
+		Use:   "jpg",
+		Short: "Get screenshot and output to JPEG, if either vw or vh is set to 0, they will be automatically set.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			flags := cmd.Flags()
+			rw, err := flags.GetInt32("rw")
+			if err != nil {
+				panic(err)
+			}
+			rh, err := flags.GetInt32("rh")
+			if err != nil {
+				panic(err)
+			}
+			vw, err := flags.GetInt32("vw")
+			if err != nil {
+				panic(err)
+			}
+			vh, err := flags.GetInt32("vh")
+			if err != nil {
+				panic(err)
+			}
+			o, err := flags.GetInt32("o")
+			if err != nil {
+				panic(err)
+			}
+			quality, err := flags.GetInt32("q")
+			if err != nil {
+				panic(err)
+			}
+			if vw == 0 {
+				vw = rw
+			}
+			if vh == 0 {
+				vh = rh
+			}
+			if rw == 0 || rh == 0 || vw == 0 || vh == 0 {
+				cmd.Help()
+				return nil
+			}
+			data, err := m.Jpg(rw, rh, vw, vh, o, quality)
+			if err != nil {
+				return err
+			}
+			os.Stdout.Write(data)
+			return nil
+		},
+	}
+	flags = cmdJpg.Flags()
+	flags.Int32("rw", 0, "Real wigth")
+	flags.Int32("rh", 0, "Real height")
+	flags.Int32("vw", 0, "Virtual wigth")
+	flags.Int32("vh", 0, "Virtual height")
+	flags.Int32("o", 0, "Orientation")
+	flags.Int32("q", 100, "Jpg quality")
 
 	cmdInfo := &cobra.Command{
 		Use:   "info",
@@ -113,6 +181,7 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 		},
 	}
 	cmd.AddCommand(cmdStart)
+	cmd.AddCommand(cmdJpg)
 	cmd.AddCommand(cmdInfo)
 	cmd.AddCommand(cmdCat)
 }
@@ -135,11 +204,17 @@ func (m *MinicapImpl) Info() (Info, error) {
 	return result, nil
 }
 
-func (m *MinicapImpl) Start(RWidth, RHeight, VWidth, VHeight, Orientation int32) error {
+func (m *MinicapImpl) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate int32) error {
 	if m.proc != nil {
 		return fmt.Errorf("minicap already running")
 	}
-	args := append(m.Base.Args(), "-P", fmt.Sprintf("%dx%d@%dx%d/%d", RWidth, RHeight, VWidth, VHeight, Orientation))
+	args := append(
+		m.Base.Args(),
+		"-P",
+		fmt.Sprintf("%dx%d@%dx%d/%d", rWidth, rHeight, vWidth, vHeight, orientation),
+		"-r",
+		strconv.Itoa(int(rate)),
+	)
 	cmd := exec.Command(m.Base.Exe(), args...)
 	cmd.Env = m.Base.Env()
 	err := cmd.Start()
@@ -148,6 +223,25 @@ func (m *MinicapImpl) Start(RWidth, RHeight, VWidth, VHeight, Orientation int32)
 	}
 	m.proc = cmd.Process
 	return nil
+}
+
+// Jpg implements IMinicap.
+func (m *MinicapImpl) Jpg(rWidth int32, rHeight int32, vWidth int32, vHeight int32, orientation int32, quality int32) ([]byte, error) {
+	args := append(
+		m.Base.Args(),
+		"-P",
+		fmt.Sprintf("%dx%d@%dx%d/%d", rWidth, rHeight, vWidth, vHeight, orientation),
+		"-s",
+		"-Q",
+		strconv.Itoa(int(quality)),
+	)
+	cmd := android.Command(m.Base.Exe(), args...)
+	cmd.SetEnv(m.Base.Env())
+	data, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("minicap start error: %s: %w", cmd.FullCmd(), err)
+	}
+	return data, nil
 }
 
 func (m *MinicapImpl) Stop() error {
