@@ -11,9 +11,17 @@ import (
 	"time"
 
 	"github.com/HumXC/shiroko/android"
+	"github.com/HumXC/shiroko/logs"
 	"github.com/HumXC/shiroko/tools/common"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slog"
 )
+
+var log *slog.Logger
+
+func init() {
+	log = logs.Get()
+}
 
 type Info struct {
 	Id       int32   `json:"id"`
@@ -190,9 +198,11 @@ var _ IMinicap = &MinicapImpl{}
 var _ common.UseCommand = &MinicapImpl{}
 
 func (m *MinicapImpl) Info() (Info, error) {
+	log.Info("Get info")
 	result := Info{}
 	cmd := android.Command(m.Base.Exe(), append(m.Base.Args(), "-i")...)
 	cmd.SetEnv(m.Base.Env())
+	log.Debug("Run command", "command", cmd.FullCmd())
 	output, err := cmd.Output()
 	if err != nil {
 		return result, fmt.Errorf("failed to get info: %w", err)
@@ -205,6 +215,7 @@ func (m *MinicapImpl) Info() (Info, error) {
 }
 
 func (m *MinicapImpl) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate int32) error {
+	log.Info("Start minicap", "rWidth", rWidth, "rHeight", rHeight, "vWidth", vWidth, "vHeight", vHeight, "orientation", orientation, "rate", rate)
 	if m.proc != nil {
 		return fmt.Errorf("minicap already running")
 	}
@@ -217,6 +228,10 @@ func (m *MinicapImpl) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate 
 	)
 	cmd := exec.Command(m.Base.Exe(), args...)
 	cmd.Env = m.Base.Env()
+	log.Debug("Run command", "command", common.FullCommand(cmd))
+	out := logs.File("nimicap")
+	cmd.Stderr = out
+	cmd.Stdout = out
 	err := cmd.Start()
 	if err != nil {
 		return fmt.Errorf("minicap start error: %s: %w", common.FullCommand(cmd), err)
@@ -227,6 +242,7 @@ func (m *MinicapImpl) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate 
 
 // Jpg implements IMinicap.
 func (m *MinicapImpl) Jpg(rWidth int32, rHeight int32, vWidth int32, vHeight int32, orientation int32, quality int32) ([]byte, error) {
+	log.Info("Minicap screenshot", "rWidth", rWidth, "rHeight", rHeight, "vWidth", vWidth, "vHeight", vHeight, "orientation", orientation, "quality", quality)
 	args := append(
 		m.Base.Args(),
 		"-P",
@@ -237,6 +253,7 @@ func (m *MinicapImpl) Jpg(rWidth int32, rHeight int32, vWidth int32, vHeight int
 	)
 	cmd := android.Command(m.Base.Exe(), args...)
 	cmd.SetEnv(m.Base.Env())
+	log.Debug("Run command", "command", cmd.FullCmd())
 	data, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("minicap start error: %s: %w", cmd.FullCmd(), err)
@@ -245,14 +262,17 @@ func (m *MinicapImpl) Jpg(rWidth int32, rHeight int32, vWidth int32, vHeight int
 }
 
 func (m *MinicapImpl) Stop() error {
+	log.Info("Minicap stop")
 	if m.conn != nil {
 		conn := m.conn
 		m.conn = nil
-		conn.Close()
+		log.Debug("Close connection", "conn", conn.LocalAddr())
+		_ = conn.Close()
 	}
 	if m.proc != nil {
 		proc := m.proc
 		m.proc = nil
+		log.Debug("Kill minicap process", "pid", proc.Pid)
 		err := proc.Kill()
 		if err != nil {
 			return fmt.Errorf("minicap kill error: %d: %w", m.proc.Pid, err)
@@ -262,6 +282,7 @@ func (m *MinicapImpl) Stop() error {
 }
 
 func (m *MinicapImpl) Cat() (io.ReadCloser, error) {
+	log.Info("Connect minicap socket")
 	conn, err := net.Dial("unix", "@minicap")
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect minicap: %w", err)

@@ -6,9 +6,17 @@ import (
 	"strings"
 
 	"github.com/HumXC/shiroko/android"
+	"github.com/HumXC/shiroko/logs"
 	"github.com/HumXC/shiroko/tools/common"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slog"
 )
+
+var log *slog.Logger
+
+func init() {
+	log = logs.Get()
+}
 
 // screencap 工具特有的接口
 type IScreencap interface {
@@ -24,9 +32,6 @@ type ScreencapImpl struct {
 
 var _ IScreencap = &ScreencapImpl{}
 var _ common.UseCommand = &ScreencapImpl{}
-
-// Init implements tools.Tool.
-func (*ScreencapImpl) Init(*cobra.Command) {}
 
 func (s *ScreencapImpl) RegCommand(c *cobra.Command) {
 	cmdDisplays := &cobra.Command{
@@ -73,6 +78,8 @@ func (s *ScreencapImpl) Png(displayID string) ([]byte, error) {
 		args = append(args, "-d", displayID)
 	}
 	cmd := android.Command(s.Base.Exe(), args...)
+	log.Info("Get screenshot and write to stdout", displayID, displayID)
+	log.Debug("Run command", "command", cmd.FullCmd())
 	b, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("%w: with display id [%s]", err, displayID)
@@ -85,6 +92,8 @@ func (s *ScreencapImpl) Png(displayID string) ([]byte, error) {
 func (s *ScreencapImpl) Displays() ([]string, error) {
 	result := make([]string, 0, 1)
 	cmd := android.Command("dumpsys", "SurfaceFlinger", "--display-id")
+	log.Info("Get displays")
+	log.Debug("Run command", "command", cmd.FullCmd())
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("command error [%s]: %w", cmd.FullCmd(), err)

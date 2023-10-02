@@ -3,17 +3,26 @@ package tools
 import (
 	"reflect"
 
+	"github.com/HumXC/shiroko/logs"
 	"github.com/HumXC/shiroko/tools/common"
 	minicap "github.com/HumXC/shiroko/tools/minicap"
 	"github.com/HumXC/shiroko/tools/screencap"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slog"
 )
+
+var log *slog.Logger
+
+func init() {
+	log = logs.Get()
+}
 
 // TODO: 日志
 var allTools map[string]common.BaseTool = make(map[string]common.BaseTool)
 
 // 由 main 包调用
 func Init(cmd *cobra.Command) {
+	log.Info("Init tools")
 	register(cmd, minicap.Minicap)
 	register(cmd, screencap.Screencap)
 	setCommand(cmd)
@@ -36,11 +45,13 @@ func register(cmd *cobra.Command, tool any) {
 	if !ok {
 		panic("failed Base is not implements tools.Tool in: " + typ.String())
 	}
+	log.Info("Register tool", "name", base.Name())
 	base.Init()
 	allTools[base.Name()] = base
 
 	to, ok := tool.(common.UseCommand)
 	if ok {
+		log.Info("Register command", "command", base.Name())
 		subCmd := &cobra.Command{
 			Use:   base.Name(),
 			Short: base.Description(),

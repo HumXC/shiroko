@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/HumXC/shiroko/logs"
 	"github.com/HumXC/shiroko/server"
 	"github.com/HumXC/shiroko/tools"
 	"github.com/spf13/cobra"
@@ -77,5 +78,6 @@ func mainRun(address, port string, useDaemon bool) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	serv := server.New()
+	logs.Get().Info("grpc server will lieten to", "address", address, "port", port)
 	serv.Serve(lis)
 }

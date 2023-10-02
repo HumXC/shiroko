@@ -64,6 +64,7 @@ func (m *minicapBase) Init() {
 	m.files = make([]string, 0, 2)
 	m.args = make([]string, 0, 2)
 	abi, sdk, rel := m.Getprop()
+	log.Info("Device info", "ABI", abi, "SDK", sdk, "Release", rel)
 	embedBin := m.getBin(abi, sdk)
 	embedLib := m.getLib(abi, sdk, rel)
 	// 可能会存在设备安卓版本太新而找不到对应 lib 的情况
@@ -89,6 +90,7 @@ func (m *minicapBase) Init() {
 		m.args = append(m.args, "/system/bin", "io.devicefarmer.minicap.Main")
 	}
 	m.files = append(m.files, bin)
+	log.Info("Find minicap", "bin", m.embedBin, "lib", m.embedLib)
 }
 
 func (minicapBase) Getprop() (abi, sdk, rel string) {
@@ -110,7 +112,9 @@ func (m *minicapBase) Args() []string {
 
 // Install implements tools.Tool.
 func (m *minicapBase) Install() error {
+	log.Info("Install minicap")
 	if m.embedBin != "" {
+		log.Info("Copy file", "src", m.embedBin, "dst", m.bin)
 		b, err := binary.Minicap.ReadFile(m.embedBin)
 		if err != nil {
 			return err
@@ -121,6 +125,7 @@ func (m *minicapBase) Install() error {
 		}
 	}
 	if m.embedLib != "" {
+		log.Info("Copy file", "src", m.embedLib, "dst", m.lib)
 		b, err := binary.Minicap.ReadFile(m.embedLib)
 		if err != nil {
 			return err
