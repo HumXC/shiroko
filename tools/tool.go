@@ -17,7 +17,6 @@ func init() {
 	log = logs.Get()
 }
 
-// TODO: 日志
 var allTools map[string]common.BaseTool = make(map[string]common.BaseTool)
 
 // 由 main 包调用

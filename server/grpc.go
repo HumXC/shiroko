@@ -9,7 +9,7 @@ import (
 )
 
 func MakeError(description string, err error) error {
-	return status.Errorf(codes.Aborted, description+": %w", err)
+	return status.Errorf(codes.Aborted, description+": %s", err)
 }
 
 type Server struct {

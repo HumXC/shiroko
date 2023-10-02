@@ -3,26 +3,27 @@ package android
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/HumXC/shiroko/tools/common"
 )
+
+var Sysenv = os.Environ()
 
 const TMP_DIR = "/data/local/tmp"
 
-type Cmd interface {
-	Output() ([]byte, error)
-	SetEnv(env []string)
-	FullCmd() string
-}
-type ccmd struct {
+type Cmd struct {
 	*exec.Cmd
+	CustomEnv []string
 }
 
-func (c *ccmd) Output() ([]byte, error) {
+func (c *Cmd) Output() ([]byte, error) {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
-	c.Cmd.Stderr = &stderr
-	c.Cmd.Stdout = &stdout
+	c.Stderr = &stderr
+	c.Stdout = &stdout
 	err := c.Cmd.Run()
 	if err != nil {
 		err = fmt.Errorf("%w: stderr: %s", err, strings.TrimRight(stderr.String(), "\r\n"))
@@ -34,16 +35,17 @@ func (c *ccmd) Output() ([]byte, error) {
 	}
 	return b, nil
 }
-func (c *ccmd) SetEnv(env []string) {
-	c.Cmd.Env = env
+func (c *Cmd) SetEnv(env []string) {
+	c.CustomEnv = env
+	c.Cmd.Env = append(Sysenv, env...)
 }
-func (c *ccmd) FullCmd() string {
-	return fmt.Sprint(strings.Join(c.Cmd.Env, " "), " ", strings.Join(c.Cmd.Args, " "))
+func (c *Cmd) FullCmd() string {
+	return common.FullCommand(c.Cmd, c.CustomEnv...)
 }
 
-func Command(cmd string, args ...string) Cmd {
+func Command(cmd string, args ...string) *Cmd {
 	_cmd := exec.Command(cmd, args...)
-	return &ccmd{
+	return &Cmd{
 		Cmd: _cmd,
 	}
 }

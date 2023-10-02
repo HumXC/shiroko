@@ -1,7 +1,6 @@
 package common
 
 import (
-	"fmt"
 	"os/exec"
 	"strings"
 
@@ -41,6 +40,10 @@ func CommandHealth(cmd string) error {
 	return nil
 }
 
-func FullCommand(cmd *exec.Cmd) string {
-	return fmt.Sprint(strings.Join(cmd.Env, " "), " ", strings.Join(cmd.Args, " "))
+func FullCommand(cmd *exec.Cmd, env ...string) string {
+	r := strings.Join(cmd.Args, " ")
+	if len(env) != 0 {
+		r = strings.Join(env, " ") + " " + r
+	}
+	return r
 }

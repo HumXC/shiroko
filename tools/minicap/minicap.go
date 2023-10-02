@@ -6,7 +6,6 @@ import (
 	"io"
 	"net"
 	"os"
-	"os/exec"
 	"strconv"
 	"time"
 
@@ -104,7 +103,7 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 	flags.Int32("rh", 0, "Real height")
 	flags.Int32("vw", 0, "Virtual wigth")
 	flags.Int32("vh", 0, "Virtual height")
-	flags.Int32("o", 0, "Orientation")
+	flags.Int32("o", 0, "Orientation (0-3)")
 	flags.Int32("r", 30, "Frame rate (frames/s)")
 
 	cmdJpg := &cobra.Command{
@@ -226,15 +225,15 @@ func (m *MinicapImpl) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate 
 		"-r",
 		strconv.Itoa(int(rate)),
 	)
-	cmd := exec.Command(m.Base.Exe(), args...)
-	cmd.Env = m.Base.Env()
-	log.Debug("Run command", "command", common.FullCommand(cmd))
+	cmd := android.Command(m.Base.Exe(), args...)
+	cmd.SetEnv(m.Base.Env())
+	log.Debug("Run command", "command", cmd.FullCmd())
 	out := logs.File("nimicap")
 	cmd.Stderr = out
 	cmd.Stdout = out
 	err := cmd.Start()
 	if err != nil {
-		return fmt.Errorf("minicap start error: %s: %w", common.FullCommand(cmd), err)
+		return fmt.Errorf("minicap start error: %s: %w", cmd.FullCmd(), err)
 	}
 	m.proc = cmd.Process
 	return nil
