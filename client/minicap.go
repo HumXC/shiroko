@@ -30,42 +30,13 @@ func (m *minicapClient) Jpg(rWidth int32, rHeight int32, vWidth int32, vHeight i
 	return resp.Data, nil
 }
 
-type grpcCatReadCloser struct {
-	stream pMinicap.Minicap_CatClient
-	buf    []byte
-}
-
-// Close implements io.ReadCloser.
-func (g *grpcCatReadCloser) Close() error {
-	return g.stream.CloseSend()
-}
-
-func (g *grpcCatReadCloser) Read(p []byte) (n int, err error) {
-	if len(g.buf) == 0 { // 如果buffer中没有数据，尝试从流中获取
-		dataChunk, err := g.stream.Recv()
-		if err == io.EOF {
-			return 0, io.EOF
-		}
-		if err != nil {
-			return 0, err
-		}
-		g.buf = dataChunk.Data
-	}
-	// 从buffer中复制数据到p
-	n = copy(p, g.buf)
-	g.buf = g.buf[n:]
-	return n, nil
-}
-
 // Cat implements minicap.IMinicap.
 func (m *minicapClient) Cat() (io.ReadCloser, error) {
 	catClient, err := m.mm.Cat(m.ctx, &pMinicap.Empty{})
 	if err != nil {
 		return nil, ParseError(err)
 	}
-	return &grpcCatReadCloser{
-		stream: catClient,
-	}, nil
+	return NewReadCloser(catClient, &pMinicap.DataChunk{}), nil
 }
 
 // Info implements minicap.IMinicap.

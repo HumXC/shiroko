@@ -213,6 +213,8 @@ func (m *MinicapImpl) Info() (Info, error) {
 	return result, nil
 }
 
+// FIXME：ERROR: invalid format for -P, need <w>x<h>@<w>x<h>/{0|90|180|270}
+// 貌似 apk 的参数和 cpp 二进制程序的 orientation 参数不一样
 func (m *MinicapImpl) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate int32) error {
 	log.Info("Start minicap", "rWidth", rWidth, "rHeight", rHeight, "vWidth", vWidth, "vHeight", vHeight, "orientation", orientation, "rate", rate)
 	if m.proc != nil {

@@ -22,25 +22,13 @@ func (s *serverMinicap) Jpg(ctx context.Context, req *pMinicap.JpgRequest) (*pMi
 	return &pMinicap.JpgResponse{Data: data}, nil
 }
 
-type grpcMinicapWriter struct {
-	stream pMinicap.Minicap_CatServer
-}
-
-func (w *grpcMinicapWriter) Write(p []byte) (n int, err error) {
-	chunk := &pMinicap.DataChunk{Data: p}
-	if err := w.stream.Send(chunk); err != nil {
-		return 0, err
-	}
-	return len(p), nil
-}
-
 // Cat implements minicap.MinicapServer.
 func (s *serverMinicap) Cat(e *pMinicap.Empty, cat pMinicap.Minicap_CatServer) error {
 	reader, err := s.minicap.Cat()
 	if err != nil {
 		return MakeError("failed to get minicap socket", err)
 	}
-	_, _ = io.Copy(&grpcMinicapWriter{cat}, reader)
+	_, _ = io.Copy(NewWriter(cat), reader)
 	return nil
 }
 
