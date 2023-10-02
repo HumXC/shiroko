@@ -96,6 +96,7 @@ func (m *minicapClient) Start(rWidth, rHeight, vWidth, vHeight, orientation, rat
 		VWidth:      vWidth,
 		VHeight:     vHeight,
 		Orientation: orientation,
+		Rate:        rate,
 	})
 	if err != nil {
 		return ParseError(err)

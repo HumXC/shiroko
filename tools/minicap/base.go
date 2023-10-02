@@ -66,6 +66,10 @@ func (m *minicapBase) Init() {
 	abi, sdk, rel := m.Getprop()
 	embedBin := m.getBin(abi, sdk)
 	embedLib := m.getLib(abi, sdk, rel)
+	// 可能会存在设备安卓版本太新而找不到对应 lib 的情况
+	if !strings.HasPrefix(m.embedBin, "noarch") && embedLib == "" {
+		embedBin = "noarch/minicap.apk"
+	}
 	m.embedBin = embedBin
 	m.embedLib = embedLib
 	if embedLib != "" {
@@ -74,7 +78,10 @@ func (m *minicapBase) Init() {
 		m.files = append(m.files, lib)
 		m.lib = lib
 	}
+
 	bin := path.Join(android.TMP_DIR, path.Base(m.embedBin))
+	m.bin = bin
+	m.exe = bin
 	// 如果 embedBin 以 noarch 开头
 	if strings.HasPrefix(m.embedBin, "noarch") {
 		m.exe = "app_process"
@@ -82,8 +89,6 @@ func (m *minicapBase) Init() {
 		m.args = append(m.args, "/system/bin", "io.devicefarmer.minicap.Main")
 	}
 	m.files = append(m.files, bin)
-	m.bin = bin
-	m.exe = bin
 }
 
 func (minicapBase) Getprop() (abi, sdk, rel string) {
