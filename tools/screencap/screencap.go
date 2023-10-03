@@ -78,7 +78,7 @@ func (s *ScreencapImpl) Png(displayID string) ([]byte, error) {
 		args = append(args, "-d", displayID)
 	}
 	cmd := android.Command(s.Base.Exe(), args...)
-	log.Info("Get screenshot and write to stdout", displayID, displayID)
+	log.Info("Get screenshot and write to stdout", "displayID", displayID)
 	log.Debug("Run command", "command", cmd.FullCmd())
 	b, err := cmd.Output()
 	if err != nil {
