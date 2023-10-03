@@ -82,6 +82,14 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 			if err != nil {
 				panic(err)
 			}
+			if rw == 0 || rh == 0 {
+				info, err := m.Info()
+				if err != nil {
+					return err
+				}
+				rw = info.Width
+				rh = info.Height
+			}
 			if vw == 0 {
 				vw = rw
 			}
@@ -103,7 +111,7 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 	flags.Int32("rh", 0, "Real height")
 	flags.Int32("vw", 0, "Virtual wigth")
 	flags.Int32("vh", 0, "Virtual height")
-	flags.Int32("o", 0, "Orientation (0-3)")
+	flags.Int32("o", 0, "Orientation (0|90|180|270)")
 	flags.Int32("r", 30, "Frame rate (frames/s)")
 
 	cmdJpg := &cobra.Command{
@@ -135,6 +143,14 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 			if err != nil {
 				panic(err)
 			}
+			if rw == 0 || rh == 0 {
+				info, err := m.Info()
+				if err != nil {
+					return err
+				}
+				rw = info.Width
+				rh = info.Height
+			}
 			if vw == 0 {
 				vw = rw
 			}
@@ -158,8 +174,8 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 	flags.Int32("rh", 0, "Real height")
 	flags.Int32("vw", 0, "Virtual wigth")
 	flags.Int32("vh", 0, "Virtual height")
-	flags.Int32("o", 0, "Orientation")
-	flags.Int32("q", 100, "Jpg quality")
+	flags.Int32("o", 0, "Orientation (0|90|180|270)")
+	flags.Int32("q", 100, "Jpg quality (0-100)")
 
 	cmdInfo := &cobra.Command{
 		Use:   "info",
@@ -213,12 +229,14 @@ func (m *MinicapImpl) Info() (Info, error) {
 	return result, nil
 }
 
-// FIXME：ERROR: invalid format for -P, need <w>x<h>@<w>x<h>/{0|90|180|270}
-// 貌似 apk 的参数和 cpp 二进制程序的 orientation 参数不一样
 func (m *MinicapImpl) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate int32) error {
 	log.Info("Start minicap", "rWidth", rWidth, "rHeight", rHeight, "vWidth", vWidth, "vHeight", vHeight, "orientation", orientation, "rate", rate)
 	if m.proc != nil {
 		return fmt.Errorf("minicap already running")
+	}
+	err := m.VerifyOrientation(orientation)
+	if err != nil {
+		return err
 	}
 	args := append(
 		m.Base.Args(),
@@ -233,7 +251,7 @@ func (m *MinicapImpl) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate 
 	out := logs.File("nimicap")
 	cmd.Stderr = out
 	cmd.Stdout = out
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		return fmt.Errorf("minicap start error: %s: %w", cmd.FullCmd(), err)
 	}
@@ -244,6 +262,10 @@ func (m *MinicapImpl) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate 
 // Jpg implements IMinicap.
 func (m *MinicapImpl) Jpg(rWidth int32, rHeight int32, vWidth int32, vHeight int32, orientation int32, quality int32) ([]byte, error) {
 	log.Info("Minicap screenshot", "rWidth", rWidth, "rHeight", rHeight, "vWidth", vWidth, "vHeight", vHeight, "orientation", orientation, "quality", quality)
+	err := m.VerifyOrientation(orientation)
+	if err != nil {
+		return nil, err
+	}
 	args := append(
 		m.Base.Args(),
 		"-P",
@@ -291,6 +313,16 @@ func (m *MinicapImpl) Cat() (io.ReadCloser, error) {
 	return conn, nil
 }
 
+func (m *MinicapImpl) VerifyOrientation(orientation int32) error {
+	allow := []int32{0, 90, 180, 270}
+	for _, v := range allow {
+		if v == orientation {
+			return nil
+		}
+	}
+	return fmt.Errorf("orientation must be one of %v", allow)
+
+}
 func New() *MinicapImpl {
 	m := &MinicapImpl{
 		Base: &minicapBase{},

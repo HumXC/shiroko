@@ -1,6 +1,9 @@
 package common
 
 import (
+	"errors"
+	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -32,6 +35,7 @@ type UseCommand interface {
 	RegCommand(*cobra.Command)
 }
 
+// 检查命令是否在 $PATH 中
 func CommandHealth(cmd string) error {
 	_, err := exec.LookPath(cmd)
 	if err != nil {
@@ -46,4 +50,22 @@ func FullCommand(cmd *exec.Cmd, env ...string) string {
 		r = strings.Join(env, " ") + " " + r
 	}
 	return r
+}
+
+// 检查所有文件是否存在，如果都存在则返回 nil
+// 如果有文件不存在则返回一个包含所有不存在文件的错误
+func HealthWithFiles(files []string) error {
+	notFiends := []string{}
+	for _, file := range files {
+		_, err := os.Stat(file)
+		if err == nil {
+			continue
+		}
+		if errors.Is(err, os.ErrNotExist) {
+			notFiends = append(notFiends, file)
+		} else {
+			return fmt.Errorf("file stat error: %s: %w", file, err)
+		}
+	}
+	return fmt.Errorf("file not exist: [%s]", strings.Join(notFiends, "] ["))
 }

@@ -2,8 +2,6 @@ package minicap
 
 // 参考：https://github.com/DeviceFarmer/minicap/blob/0276fbeff6803c7ff4e39450f7c87a2ba59be25e/run.sh
 import (
-	"errors"
-	"fmt"
 	"os"
 	"path"
 	"strconv"
@@ -150,18 +148,7 @@ func (m *minicapBase) Exe() string {
 
 // Health implements tools.Tool.
 func (m *minicapBase) Health() error {
-	for _, file := range m.files {
-		_, err := os.Stat(file)
-		if err == nil {
-			continue
-		}
-		if errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("file not exist: %s", file)
-		} else {
-			return fmt.Errorf("file stat error: %s: %w", file, err)
-		}
-	}
-	return nil
+	return common.HealthWithFiles(m.Files())
 }
 
 func (minicapBase) getBin(abi, sdk string) string {
