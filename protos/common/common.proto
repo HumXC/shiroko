@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package common;
+option go_package = "github.com/HumXC/shiroko/protos/common";
+
+// 在 go 里，DataChunk 充当 []byte 的角色
+message DataChunk {
+    bytes data = 1;
+}

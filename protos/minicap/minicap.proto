@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package minicap;
 option go_package = "github.com/HumXC/shiroko/protos/minicap";
+import "protos/common/common.proto";
 
 message InfoResponse {
     int32 Id = 1;
@@ -34,9 +35,6 @@ message JpgRequest {
     int32 Quality = 6;
 }
 
-message JpgResponse {
-    bytes data = 1;
-}
 // 不带任何字段的消息，可以用于没有参数或返回值的方法
 message Empty {}
 
@@ -45,11 +43,6 @@ service Minicap {
     rpc Info(Empty) returns (InfoResponse);
     rpc Start(StartRequest) returns (Empty);
     rpc Stop(Empty) returns (Empty);
-    rpc Cat(Empty) returns (stream DataChunk);
-    rpc Jpg(JpgRequest) returns(JpgResponse);
-}
-
-// 表示数据块的消息
-message DataChunk {
-    bytes data = 1;
+    rpc Cat(Empty) returns (stream common.DataChunk);
+    rpc Jpg(JpgRequest) returns(common.DataChunk);
 }

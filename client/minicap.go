@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/HumXC/shiroko/protos/common"
 	pMinicap "github.com/HumXC/shiroko/protos/minicap"
 	tMinicap "github.com/HumXC/shiroko/tools/minicap"
 	"google.golang.org/grpc"
@@ -36,7 +37,7 @@ func (m *minicapClient) Cat() (io.ReadCloser, error) {
 	if err != nil {
 		return nil, ParseError(err)
 	}
-	return NewReadCloser(catClient, &pMinicap.DataChunk{}), nil
+	return common.NewReadCloser(catClient), nil
 }
 
 // Info implements minicap.IMinicap.

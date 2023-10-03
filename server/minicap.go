@@ -4,22 +4,24 @@ import (
 	"context"
 	"io"
 
+	"github.com/HumXC/shiroko/protos/common"
 	pMinicap "github.com/HumXC/shiroko/protos/minicap"
 	"github.com/HumXC/shiroko/tools/minicap"
 )
 
 type serverMinicap struct {
-	pMinicap.UnimplementedMinicapServer
+	// 嵌入此是为了确保所有定义的方法都被实现
+	pMinicap.UnsafeMinicapServer
 	minicap minicap.IMinicap
 }
 
 // Jpg implements minicap.MinicapServer.
-func (s *serverMinicap) Jpg(ctx context.Context, req *pMinicap.JpgRequest) (*pMinicap.JpgResponse, error) {
+func (s *serverMinicap) Jpg(ctx context.Context, req *pMinicap.JpgRequest) (*common.DataChunk, error) {
 	data, err := s.minicap.Jpg(req.RWidth, req.RHeight, req.VWidth, req.VHeight, req.Orientation, req.Quality)
 	if err != nil {
-		return &pMinicap.JpgResponse{}, MakeError("failed to start minicap", err)
+		return &common.DataChunk{}, MakeError("failed to start minicap", err)
 	}
-	return &pMinicap.JpgResponse{Data: data}, nil
+	return &common.DataChunk{Data: data}, nil
 }
 
 // Cat implements minicap.MinicapServer.
@@ -28,7 +30,7 @@ func (s *serverMinicap) Cat(e *pMinicap.Empty, cat pMinicap.Minicap_CatServer) e
 	if err != nil {
 		return MakeError("failed to get minicap socket", err)
 	}
-	_, _ = io.Copy(NewWriter(cat), reader)
+	_, _ = io.Copy(common.NewWriter(cat), reader)
 	return nil
 }
 
