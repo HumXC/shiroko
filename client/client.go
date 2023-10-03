@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 
+	"github.com/HumXC/shiroko/tools/manager"
 	"github.com/HumXC/shiroko/tools/minicap"
 	"github.com/HumXC/shiroko/tools/screencap"
 	"google.golang.org/grpc"
@@ -13,6 +14,7 @@ type Client struct {
 	conn      *grpc.ClientConn
 	Screencap screencap.IScreencap
 	Minicap   minicap.IMinicap
+	Manager   manager.IManager
 }
 
 func New(target string, opts ...grpc.DialOption) (*Client, error) {
@@ -27,6 +29,7 @@ func New(target string, opts ...grpc.DialOption) (*Client, error) {
 		conn:      conn,
 		Screencap: initScreencap(ctx, conn),
 		Minicap:   initMinicap(ctx, conn),
+		Manager:   initManager(ctx, conn),
 	}, nil
 }
 func (c *Client) Close() error {

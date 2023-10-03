@@ -7,3 +7,5 @@ option go_package = "github.com/HumXC/shiroko/protos/common";
 message DataChunk {
     bytes data = 1;
 }
+
+message Empty {}

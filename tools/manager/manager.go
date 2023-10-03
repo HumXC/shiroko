@@ -11,41 +11,38 @@ import (
 
 // 管理所有的 tool
 type IManager interface {
-	// 注册一个 tool
-	Register(common.Tool)
 	// 返回所有工具的名字
 	List() []string
 	// 对应 tools.common.Base
-	// 约定 name 必须在 List 的结果之中，否则返回默认值
 	Health(name string) error
 	Install(name string) error
 	Uninstall(name string) error
-	Env(name string) []string
-	Exe(name string) string
-	Args(name string) []string
-	Files(name string) []string
+	Env(name string) ([]string, error)
+	Exe(name string) (string, error)
+	Args(name string) ([]string, error)
+	Files(name string) ([]string, error)
 }
 
 var log = logs.Get()
 
-var _ IManager = &managerImpl{}
-var Manager IManager = nil
+var _ IManager = &ManagerImpl{}
+var Manager *ManagerImpl = nil
 
-type managerImpl struct {
+type ManagerImpl struct {
 	rootCmd  *cobra.Command
 	allTools map[string]common.BaseTool
 }
 
-func (m *managerImpl) getTool(name string) common.BaseTool {
+func (m *ManagerImpl) getTool(name string) (common.BaseTool, error) {
 	t := m.allTools[name]
 	if t == nil {
-		log.Warn("Tool not found", "name", name)
+		return nil, fmt.Errorf("can not found tool with name: %s", name)
 	}
-	return t
+	return t, nil
 }
 
 // Register implements IManager.
-func (m *managerImpl) Register(tool common.Tool) {
+func (m *ManagerImpl) Register(tool common.Tool) {
 	base := tool.Base()
 	name := base.Name()
 	log.Info("Register tool", "name", name)
@@ -68,62 +65,62 @@ func (m *managerImpl) Register(tool common.Tool) {
 }
 
 // Args implements IManager.
-func (m *managerImpl) Args(name string) []string {
-	t := m.getTool(name)
-	if t == nil {
-		return []string{}
+func (m *ManagerImpl) Args(name string) ([]string, error) {
+	t, err := m.getTool(name)
+	if err != nil {
+		return nil, err
 	}
-	return t.Args()
+	return t.Args(), nil
 }
 
 // Env implements IManager.
-func (m *managerImpl) Env(name string) []string {
-	t := m.getTool(name)
-	if t == nil {
-		return []string{}
+func (m *ManagerImpl) Env(name string) ([]string, error) {
+	t, err := m.getTool(name)
+	if err != nil {
+		return nil, err
 	}
-	return t.Env()
+	return t.Env(), nil
 }
 
 // Exe implements IManager.
-func (m *managerImpl) Exe(name string) string {
-	t := m.getTool(name)
-	if t == nil {
-		return ""
+func (m *ManagerImpl) Exe(name string) (string, error) {
+	t, err := m.getTool(name)
+	if err != nil {
+		return "", err
 	}
-	return t.Exe()
+	return t.Exe(), nil
 }
 
 // Files implements IManager.
-func (m *managerImpl) Files(name string) []string {
-	t := m.getTool(name)
-	if t == nil {
-		return []string{}
+func (m *ManagerImpl) Files(name string) ([]string, error) {
+	t, err := m.getTool(name)
+	if err != nil {
+		return nil, err
 	}
-	return t.Files()
+	return t.Files(), nil
 }
 
 // Health implements IManager.
-func (m *managerImpl) Health(name string) error {
-	t := m.getTool(name)
-	if t == nil {
-		return nil
+func (m *ManagerImpl) Health(name string) error {
+	t, err := m.getTool(name)
+	if err != nil {
+		return err
 	}
 	return t.Health()
 }
 
 // Install implements IManager.
-func (m *managerImpl) Install(name string) error {
-	t := m.getTool(name)
-	if t == nil {
-		return nil
+func (m *ManagerImpl) Install(name string) error {
+	t, err := m.getTool(name)
+	if err != nil {
+		return err
 	}
 	return t.Install()
 }
 
 // List implements IManager.
-func (m *managerImpl) List() []string {
-	result := make([]string, len(m.allTools))
+func (m *ManagerImpl) List() []string {
+	result := make([]string, 0, len(m.allTools))
 	for _, t := range m.allTools {
 		result = append(result, t.Name())
 	}
@@ -131,16 +128,16 @@ func (m *managerImpl) List() []string {
 }
 
 // Uninstall implements IManager.
-func (m *managerImpl) Uninstall(name string) error {
-	t := m.getTool(name)
-	if t == nil {
-		return nil
+func (m *ManagerImpl) Uninstall(name string) error {
+	t, err := m.getTool(name)
+	if err != nil {
+		return err
 	}
 	return t.Uninstall()
 }
 
-func New(rootCmd *cobra.Command) IManager {
-	m := &managerImpl{
+func New(rootCmd *cobra.Command) *ManagerImpl {
+	m := &ManagerImpl{
 		rootCmd:  rootCmd,
 		allTools: make(map[string]common.BaseTool),
 	}
@@ -148,7 +145,7 @@ func New(rootCmd *cobra.Command) IManager {
 	return m
 }
 
-func (m *managerImpl) setCommand() {
+func (m *ManagerImpl) setCommand() {
 	type flagsSet struct {
 		health, env, files, args, exe bool
 	}

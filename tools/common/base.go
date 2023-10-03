@@ -70,5 +70,8 @@ func HealthWithFiles(files []string) error {
 			return fmt.Errorf("file stat error: %s: %w", file, err)
 		}
 	}
+	if len(notFiends) == 0 {
+		return nil
+	}
 	return fmt.Errorf("file not exist: [%s]", strings.Join(notFiends, "] ["))
 }

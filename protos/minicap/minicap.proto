@@ -35,14 +35,11 @@ message JpgRequest {
     int32 Quality = 6;
 }
 
-// 不带任何字段的消息，可以用于没有参数或返回值的方法
-message Empty {}
-
 // Minicap服务定义
 service Minicap {
-    rpc Info(Empty) returns (InfoResponse);
-    rpc Start(StartRequest) returns (Empty);
-    rpc Stop(Empty) returns (Empty);
-    rpc Cat(Empty) returns (stream common.DataChunk);
+    rpc Info(common.Empty) returns (InfoResponse);
+    rpc Start(StartRequest) returns (common.Empty);
+    rpc Stop(common.Empty) returns (common.Empty);
+    rpc Cat(common.Empty) returns (stream common.DataChunk);
     rpc Jpg(JpgRequest) returns(common.DataChunk);
 }

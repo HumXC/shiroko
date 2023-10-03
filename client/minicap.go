@@ -33,7 +33,7 @@ func (m *minicapClient) Jpg(rWidth int32, rHeight int32, vWidth int32, vHeight i
 
 // Cat implements minicap.IMinicap.
 func (m *minicapClient) Cat() (io.ReadCloser, error) {
-	catClient, err := m.mm.Cat(m.ctx, &pMinicap.Empty{})
+	catClient, err := m.mm.Cat(m.ctx, &common.Empty{})
 	if err != nil {
 		return nil, ParseError(err)
 	}
@@ -42,7 +42,7 @@ func (m *minicapClient) Cat() (io.ReadCloser, error) {
 
 // Info implements minicap.IMinicap.
 func (m *minicapClient) Info() (tMinicap.Info, error) {
-	resp, err := m.mm.Info(m.ctx, &pMinicap.Empty{})
+	resp, err := m.mm.Info(m.ctx, &common.Empty{})
 	if err != nil {
 		return tMinicap.Info{}, ParseError(err)
 	}
@@ -78,7 +78,7 @@ func (m *minicapClient) Start(rWidth, rHeight, vWidth, vHeight, orientation, rat
 
 // Stop implements minicap.IMinicap.
 func (m *minicapClient) Stop() error {
-	_, err := m.mm.Stop(m.ctx, &pMinicap.Empty{})
+	_, err := m.mm.Stop(m.ctx, &common.Empty{})
 	if err != nil {
 		return ParseError(err)
 	}

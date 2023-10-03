@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package manager;
+
+option go_package = "github.com/HumXC/shiroko/protos/manager";
+import "protos/common/common.proto";
+
+message ListResponse {
+    repeated string names = 1;
+}
+
+message NameRequest {
+    string name = 1;
+}
+
+message HealthResponse {
+    string status = 1; 
+}
+
+message EnvResponse {
+    repeated string envs = 1;
+}
+
+message ExeResponse {
+    string exe = 1;
+}
+
+message ArgsResponse {
+    repeated string args = 1;
+}
+
+message FilesResponse {
+    repeated string files = 1;
+}
+
+service Manager {
+    rpc List(common.Empty) returns (ListResponse);
+    rpc Health(NameRequest) returns (common.Empty);
+    rpc Install(NameRequest) returns (common.Empty);
+    rpc Uninstall(NameRequest) returns (common.Empty);
+    rpc Env(NameRequest) returns (EnvResponse);
+    rpc Exe(NameRequest) returns (ExeResponse);
+    rpc Args(NameRequest) returns (ArgsResponse);
+    rpc Files(NameRequest) returns (FilesResponse);
+}
