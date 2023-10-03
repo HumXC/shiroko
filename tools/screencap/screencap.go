@@ -27,12 +27,17 @@ type IScreencap interface {
 var Screencap *ScreencapImpl = New()
 
 type ScreencapImpl struct {
-	Base common.BaseTool
+	base common.BaseTool
 }
 
 var _ IScreencap = &ScreencapImpl{}
+var _ common.Tool = &ScreencapImpl{}
 var _ common.UseCommand = &ScreencapImpl{}
 
+// Base implements common.Tool.
+func (s *ScreencapImpl) Base() common.BaseTool {
+	return s.base
+}
 func (s *ScreencapImpl) RegCommand(c *cobra.Command) {
 	cmdDisplays := &cobra.Command{
 		Use:   "displays",
@@ -77,7 +82,7 @@ func (s *ScreencapImpl) Png(displayID string) ([]byte, error) {
 	if displayID != "" {
 		args = append(args, "-d", displayID)
 	}
-	cmd := android.Command(s.Base.Exe(), args...)
+	cmd := android.Command(s.base.Exe(), args...)
 	log.Info("Get screenshot and write to stdout", "displayID", displayID)
 	log.Debug("Run command", "command", cmd.FullCmd())
 	b, err := cmd.Output()
@@ -109,7 +114,7 @@ func (s *ScreencapImpl) Displays() ([]string, error) {
 
 func New() *ScreencapImpl {
 	s := &ScreencapImpl{
-		Base: &screenBase{cmd: "screencap"},
+		base: &screenBase{cmd: "screencap"},
 	}
 	return s
 }

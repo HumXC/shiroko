@@ -46,10 +46,19 @@ type IMinicap interface {
 var Minicap *MinicapImpl = New()
 
 type MinicapImpl struct {
-	Base common.BaseTool
+	base common.BaseTool
 	proc *os.Process
 	conn net.Conn
 }
+
+// Base implements common.Tool.
+func (m *MinicapImpl) Base() common.BaseTool {
+	return m.base
+}
+
+var _ common.Tool = &MinicapImpl{}
+var _ IMinicap = &MinicapImpl{}
+var _ common.UseCommand = &MinicapImpl{}
 
 // RegCommand implements common.UseCommand.
 func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
@@ -209,14 +218,11 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 	cmd.AddCommand(cmdCat)
 }
 
-var _ IMinicap = &MinicapImpl{}
-var _ common.UseCommand = &MinicapImpl{}
-
 func (m *MinicapImpl) Info() (Info, error) {
 	log.Info("Get info")
 	result := Info{}
-	cmd := android.Command(m.Base.Exe(), append(m.Base.Args(), "-i")...)
-	cmd.SetEnv(m.Base.Env())
+	cmd := android.Command(m.base.Exe(), append(m.base.Args(), "-i")...)
+	cmd.SetEnv(m.base.Env())
 	log.Debug("Run command", "command", cmd.FullCmd())
 	output, err := cmd.Output()
 	if err != nil {
@@ -239,14 +245,14 @@ func (m *MinicapImpl) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate 
 		return err
 	}
 	args := append(
-		m.Base.Args(),
+		m.base.Args(),
 		"-P",
 		fmt.Sprintf("%dx%d@%dx%d/%d", rWidth, rHeight, vWidth, vHeight, orientation),
 		"-r",
 		strconv.Itoa(int(rate)),
 	)
-	cmd := android.Command(m.Base.Exe(), args...)
-	cmd.SetEnv(m.Base.Env())
+	cmd := android.Command(m.base.Exe(), args...)
+	cmd.SetEnv(m.base.Env())
 	log.Debug("Run command", "command", cmd.FullCmd())
 	out := logs.File("nimicap")
 	cmd.Stderr = out
@@ -267,15 +273,15 @@ func (m *MinicapImpl) Jpg(rWidth int32, rHeight int32, vWidth int32, vHeight int
 		return nil, err
 	}
 	args := append(
-		m.Base.Args(),
+		m.base.Args(),
 		"-P",
 		fmt.Sprintf("%dx%d@%dx%d/%d", rWidth, rHeight, vWidth, vHeight, orientation),
 		"-s",
 		"-Q",
 		strconv.Itoa(int(quality)),
 	)
-	cmd := android.Command(m.Base.Exe(), args...)
-	cmd.SetEnv(m.Base.Env())
+	cmd := android.Command(m.base.Exe(), args...)
+	cmd.SetEnv(m.base.Env())
 	log.Debug("Run command", "command", cmd.FullCmd())
 	data, err := cmd.Output()
 	if err != nil {
@@ -325,7 +331,7 @@ func (m *MinicapImpl) VerifyOrientation(orientation int32) error {
 }
 func New() *MinicapImpl {
 	m := &MinicapImpl{
-		Base: &minicapBase{},
+		base: &minicapBase{},
 	}
 	return m
 }

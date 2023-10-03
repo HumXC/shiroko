@@ -10,6 +10,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type Tool interface {
+	Base() BaseTool
+}
 type BaseTool interface {
 	Name() string
 	// 简短的描述
