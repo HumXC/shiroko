@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Minicap Stream</title>
+    </head>
+    <body>
+        <canvas id="minicapCanvas"></canvas>
+        <script>
+            const canvas = document.getElementById("minicapCanvas");
+            const ctx = canvas.getContext("2d");
+            const ws = new WebSocket("ws://localhost:8080/ws");
+
+            ws.onmessage = function (event) {
+                const image = new Image();
+                const blob = new Blob([event.data], { type: "image/jpeg" });
+                image.src = URL.createObjectURL(blob);
+
+                image.onload = function () {
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    ctx.drawImage(image, 0, 0);
+                };
+            };
+        </script>
+    </body>
+</html>

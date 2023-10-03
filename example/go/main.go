@@ -1,49 +1,45 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"time"
 
 	"github.com/HumXC/shiroko/client"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
 	target := "192.168.3.204:15600"
-	client, err := client.New(target, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	client, err := client.New(target)
 	if err != nil {
 		log.Fatal(err)
 	}
-	info, err := client.Minicap.Info()
-	if err != nil {
-		log.Fatal(err)
+	// info, _ := client.Minicap.Info()
+	screencap := func(i int) error {
+		// return client.Minicap.Jpg(info.Width, info.Height, info.Width, info.Height, 0, 100)
+		_, err := client.Screencap.Png("")
+		// b, _ := io.ReadAll(r)
+		// os.WriteFile(fmt.Sprintf("./%d.png", i), r, 0644)
+		return err
 	}
-	err = client.Minicap.Stop()
-	if err != nil {
-		log.Fatal(err)
-	}
-	_ = client.Minicap.Start(info.Height, info.Width, info.Height, info.Width, info.Rotation)
-	time.Sleep(1 * time.Second)
-	reader, err := client.Minicap.Cat()
-	if err != nil {
-		log.Fatal(err)
-	}
-	buf := make([]byte, 1024*1024)
-	for {
-		time.Sleep(1 * time.Second)
-		n, err := reader.Read(buf)
+	befor := time.Now()
+	// wg := &sync.WaitGroup{}
+	count := 10
+	for i := 0; i < count; i++ {
+		// wg.Add(1)
+		// go func(wg *sync.WaitGroup) {
+
+		// 	wg.Done()
+
+		// }(wg)
+		err := screencap(i)
 		if err != nil {
-			if errors.Is(err, io.EOF) {
-				continue
-			} else {
-				fmt.Println(err)
-			}
+			log.Fatal(err)
 		}
-		fmt.Println(n)
 	}
+	// wg.Wait()
+	// 输出运行时间
+
+	fmt.Println(time.Since(befor))
 
 }
