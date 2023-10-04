@@ -14,7 +14,11 @@ var Minicap = achive{
 }
 
 //go:embed stf-binaries/node_modules/@devicefarmer/minitouch-prebuilt/prebuilt
-var Minitouch_embed embed.FS
+var minitouch_embed embed.FS
+var Minitouch = achive{
+	fs:      minitouch_embed,
+	baseDir: "stf-binaries/node_modules/@devicefarmer/minitouch-prebuilt/prebuilt",
+}
 
 type achive struct {
 	baseDir string

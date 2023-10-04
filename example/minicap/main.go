@@ -42,9 +42,7 @@ func main() {
 	go func() {
 		ParseMinicap(minicapOutput, chFrame)
 	}()
-	// go func() {
-	// 	HandleMinicap(chFrame, &lock)
-	// }()
+
 	http.HandleFunc("/", handleRoot)
 	http.HandleFunc("/ws", handleConnection(chFrame))
 	fmt.Println("访问: http://" + ServeAddr)
