@@ -87,15 +87,26 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 			if err != nil {
 				panic(err)
 			}
+			info, err := m.Info()
+			if err != nil {
+				return err
+			}
+			if o == -1 {
+				switch info.Rotation {
+				case 1:
+					o = 90
+				case 2:
+					o = 180
+				case 3:
+					o = 270
+				}
+			}
 			rate, err := flags.GetInt32("r")
 			if err != nil {
 				panic(err)
 			}
 			if rw == 0 || rh == 0 {
-				info, err := m.Info()
-				if err != nil {
-					return err
-				}
+
 				rw = info.Width
 				rh = info.Height
 			}
@@ -120,7 +131,7 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 	flags.Int32("rh", 0, "Real height")
 	flags.Int32("vw", 0, "Virtual wigth")
 	flags.Int32("vh", 0, "Virtual height")
-	flags.Int32("o", 0, "Orientation (0|90|180|270)")
+	flags.Int32("o", -1, "Orientation (0|90|180|270)")
 	flags.Int32("r", 30, "Frame rate (frames/s)")
 
 	cmdJpg := &cobra.Command{
@@ -152,11 +163,21 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 			if err != nil {
 				panic(err)
 			}
-			if rw == 0 || rh == 0 {
-				info, err := m.Info()
-				if err != nil {
-					return err
+			info, err := m.Info()
+			if err != nil {
+				return err
+			}
+			if o == -1 {
+				switch info.Rotation {
+				case 1:
+					o = 90
+				case 2:
+					o = 180
+				case 3:
+					o = 270
 				}
+			}
+			if rw == 0 || rh == 0 {
 				rw = info.Width
 				rh = info.Height
 			}
@@ -183,7 +204,7 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 	flags.Int32("rh", 0, "Real height")
 	flags.Int32("vw", 0, "Virtual wigth")
 	flags.Int32("vh", 0, "Virtual height")
-	flags.Int32("o", 0, "Orientation (0|90|180|270)")
+	flags.Int32("o", -1, "Orientation (0|90|180|270)")
 	flags.Int32("q", 100, "Jpg quality (0-100)")
 
 	cmdInfo := &cobra.Command{

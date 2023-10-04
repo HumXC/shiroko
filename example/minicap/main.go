@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -12,6 +13,43 @@ import (
 	"github.com/HumXC/shiroko/tools/minicap"
 	"github.com/gorilla/websocket"
 )
+
+//go:embed index.html
+var Html []byte
+
+const Target = "192.168.3.252:15600"
+const ServeAddr = "localhost:8080"
+
+func main() {
+	client, err := client.New(Target)
+	if err != nil {
+		panic(err)
+	}
+	// 检查 minicap 是否安装
+	err = client.Manager.Health("minicap")
+	if err != nil {
+		err = client.Manager.Install("minicap")
+		if err != nil {
+			panic(err)
+		}
+	}
+	minicapOutput, err := GetMinicap(client.Minicap)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("获取到minicap")
+	var chFrame chan []byte = make(chan []byte, 1)
+	go func() {
+		ParseMinicap(minicapOutput, chFrame)
+	}()
+	// go func() {
+	// 	HandleMinicap(chFrame, &lock)
+	// }()
+	http.HandleFunc("/", handleRoot)
+	http.HandleFunc("/ws", handleConnection(chFrame))
+	fmt.Println("访问: http://" + ServeAddr)
+	http.ListenAndServe(ServeAddr, nil)
+}
 
 // GlobalHeader represents the global header from minicap.
 type GlobalHeader struct {
@@ -37,62 +75,33 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-var minicapOutput io.Reader
-
-func handleConnection(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("处理连接")
-	*&flagConnected = true
-	defer func() {
-		*&flagConnected = false
-	}()
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer conn.Close()
-
-	for {
-		frame := <-chFrame
-		err := conn.WriteMessage(websocket.BinaryMessage, frame)
+func handleRoot(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("网页连接")
+	w.Header().Set("Content-Type", "text/html")
+	w.Write(Html)
+}
+func handleConnection(chFrame <-chan []byte) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer w.Header().Clone()
+		fmt.Println("处理连接")
+		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			fmt.Println(err)
-			break
+			return
 		}
-	}
-}
+		defer conn.Close()
 
-var flagConnected bool = false
-var chFrame chan []byte = make(chan []byte, 1)
-
-func main() {
-	target := "192.168.3.204:15600"
-	client, err := client.New(target)
-	if err != nil {
-		panic(err)
-	}
-	minicapOutput = GetMinicap(client.Minicap)
-	go func() {
-		ParseMinicap(minicapOutput, chFrame)
-	}()
-	go func() {
-		HandleMinicap(chFrame, &flagConnected)
-	}()
-	fmt.Println("获取到minicap")
-	http.HandleFunc("/ws", handleConnection)
-	http.ListenAndServe(":8080", nil)
-}
-func HandleMinicap(ch <-chan []byte, flagConnected *bool) {
-	for {
-		if !*flagConnected {
-			select {
-			case _ = <-ch:
-				fmt.Print(".")
-			default:
+		for {
+			frame := <-chFrame
+			err := conn.WriteMessage(websocket.BinaryMessage, frame)
+			if err != nil {
+				fmt.Println(err)
+				break
 			}
 		}
 	}
 }
+
 func ParseMinicap(reader io.Reader, ch chan<- []byte) {
 	var globalHeader GlobalHeader
 	if err := binary.Read(reader, binary.LittleEndian, &globalHeader); err != nil {
@@ -114,23 +123,37 @@ func ParseMinicap(reader io.Reader, ch chan<- []byte) {
 		ch <- frameData
 	}
 }
-func GetMinicap(m minicap.IMinicap) io.Reader {
+
+func GetMinicap(m minicap.IMinicap) (io.Reader, error) {
+	// 关闭 minicap
 	err := m.Stop()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+	// 获取屏幕信息
 	info, err := m.Info()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	err = m.Start(info.Width, info.Height, info.Width, info.Height, 0, 60)
+
+	var orientation int32 = 0
+	switch info.Rotation {
+	case 1:
+		orientation = 90
+	case 2:
+		orientation = 180
+	case 3:
+		orientation = 270
+	}
+	err = m.Start(info.Width, info.Height, info.Width, info.Height, orientation, 60)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+	// 等待 minicap 启动
 	time.Sleep(1 * time.Second)
 	reader, err := m.Cat()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return reader
+	return reader, nil
 }

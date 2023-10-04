@@ -20,6 +20,8 @@ func init() {
 
 // screencap 工具特有的接口
 type IScreencap interface {
+	// 相当于 screencap -p -d displayID
+	// displayID 可以为空
 	Png(displayID string) ([]byte, error)
 	Displays() ([]string, error)
 }
