@@ -21,4 +21,5 @@ func Init(cmd *cobra.Command) {
 	manager.Manager = manager.New(cmd)
 	manager.Manager.Register(minicap.Minicap)
 	manager.Manager.Register(screencap.Screencap)
+	manager.Manager.SetCommand()
 }

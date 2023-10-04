@@ -141,11 +141,10 @@ func New(rootCmd *cobra.Command) *ManagerImpl {
 		rootCmd:  rootCmd,
 		allTools: make(map[string]common.BaseTool),
 	}
-	m.setCommand()
 	return m
 }
 
-func (m *ManagerImpl) setCommand() {
+func (m *ManagerImpl) SetCommand() {
 	type flagsSet struct {
 		health, env, files, args, exe bool
 	}
