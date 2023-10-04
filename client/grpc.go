@@ -2,21 +2,18 @@ package client
 
 import (
 	"errors"
-	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-var ErrGrpcCallFailed = errors.New("grpc call falied")
-
-// 解析错误，返回一个合适的错误。如果是 grpc 造成的错误则会 Wrap 一个 ErrGrpcCallFailed
+// 解析错误，返回一个合适的错误。
+// 如果错误并不是由 grpc 等外部原因造成的，例如网络断开等错误
+// 便会返回一个由服务端函数返回的原始错误，否则返回原错误
 func ParseError(err error) error {
-	if s, ok := status.FromError(err); ok {
-		code := s.Code()
-		if code != codes.OK && code != codes.Aborted {
-			return fmt.Errorf("%w: %w", ErrGrpcCallFailed, err)
-		}
+	s, ok := status.FromError(err)
+	if ok && s.Code() == codes.Unknown {
+		return errors.New(s.Message())
 	}
 	return err
 }

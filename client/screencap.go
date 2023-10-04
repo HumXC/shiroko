@@ -4,7 +4,6 @@ import (
 	"context"
 
 	pScreencap "github.com/HumXC/shiroko/protos/screencap"
-	tScreencap "github.com/HumXC/shiroko/tools/screencap"
 	"google.golang.org/grpc"
 )
 
@@ -33,7 +32,7 @@ func (s *screencapClient) Png(displayID string) ([]byte, error) {
 	return resp.Data, nil
 }
 
-func initScreencap(ctx context.Context, conn *grpc.ClientConn) tScreencap.IScreencap {
+func initScreencap(ctx context.Context, conn *grpc.ClientConn) Screencap {
 	return &screencapClient{
 		sc:  pScreencap.NewScreencapClient(conn),
 		ctx: ctx,

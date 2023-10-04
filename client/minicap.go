@@ -85,7 +85,7 @@ func (m *minicapClient) Stop() error {
 	return nil
 }
 
-func initMinicap(ctx context.Context, conn *grpc.ClientConn) tMinicap.IMinicap {
+func initMinicap(ctx context.Context, conn *grpc.ClientConn) Minicap {
 	return &minicapClient{
 		mm:  pMinicap.NewMinicapClient(conn),
 		ctx: ctx,

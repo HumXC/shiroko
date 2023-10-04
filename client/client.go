@@ -3,18 +3,31 @@ package client
 import (
 	"context"
 
-	"github.com/HumXC/shiroko/tools/manager"
 	"github.com/HumXC/shiroko/tools/minicap"
 	"github.com/HumXC/shiroko/tools/screencap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+type Manager interface {
+	// 返回所有工具的名字
+	List() ([]string, error)
+	// 对应 tools.common.Base
+	Health(name string) error
+	Install(name string) error
+	Uninstall(name string) error
+	Env(name string) ([]string, error)
+	Exe(name string) (string, error)
+	Args(name string) ([]string, error)
+	Files(name string) ([]string, error)
+}
+type Minicap = minicap.IMinicap
+type Screencap = screencap.IScreencap
 type Client struct {
 	conn      *grpc.ClientConn
-	Screencap screencap.IScreencap
-	Minicap   minicap.IMinicap
-	Manager   manager.IManager
+	Screencap Screencap
+	Minicap   Minicap
+	Manager   Manager
 }
 
 func New(target string, opts ...grpc.DialOption) (*Client, error) {

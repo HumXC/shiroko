@@ -19,7 +19,7 @@ type serverMinicap struct {
 func (s *serverMinicap) Jpg(ctx context.Context, req *pMinicap.JpgRequest) (*common.DataChunk, error) {
 	data, err := s.minicap.Jpg(req.RWidth, req.RHeight, req.VWidth, req.VHeight, req.Orientation, req.Quality)
 	if err != nil {
-		return &common.DataChunk{}, MakeError("failed to start minicap", err)
+		return &common.DataChunk{}, err
 	}
 	return &common.DataChunk{Data: data}, nil
 }
@@ -28,7 +28,7 @@ func (s *serverMinicap) Jpg(ctx context.Context, req *pMinicap.JpgRequest) (*com
 func (s *serverMinicap) Cat(e *common.Empty, cat pMinicap.Minicap_CatServer) error {
 	reader, err := s.minicap.Cat()
 	if err != nil {
-		return MakeError("failed to get minicap socket", err)
+		return err
 	}
 	_, _ = io.Copy(common.NewWriter(cat), reader)
 	return nil
@@ -38,7 +38,7 @@ func (s *serverMinicap) Cat(e *common.Empty, cat pMinicap.Minicap_CatServer) err
 func (s *serverMinicap) Info(context.Context, *common.Empty) (*pMinicap.InfoResponse, error) {
 	result, err := s.minicap.Info()
 	if err != nil {
-		return &pMinicap.InfoResponse{}, MakeError("failed to get minicap info", err)
+		return &pMinicap.InfoResponse{}, err
 	}
 	return &pMinicap.InfoResponse{
 		Id:       result.Id,
@@ -58,7 +58,7 @@ func (s *serverMinicap) Info(context.Context, *common.Empty) (*pMinicap.InfoResp
 func (s *serverMinicap) Start(ctx context.Context, req *pMinicap.StartRequest) (*common.Empty, error) {
 	err := s.minicap.Start(req.RWidth, req.RHeight, req.VWidth, req.VHeight, req.Orientation, req.Rate)
 	if err != nil {
-		return &common.Empty{}, MakeError("failed to start minicap", err)
+		return &common.Empty{}, err
 	}
 	return &common.Empty{}, nil
 }
@@ -67,7 +67,7 @@ func (s *serverMinicap) Start(ctx context.Context, req *pMinicap.StartRequest) (
 func (s *serverMinicap) Stop(context.Context, *common.Empty) (*common.Empty, error) {
 	err := s.minicap.Stop()
 	if err != nil {
-		return &common.Empty{}, MakeError("failed to stop minicap", err)
+		return &common.Empty{}, err
 	}
 	return &common.Empty{}, nil
 }

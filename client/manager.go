@@ -5,7 +5,6 @@ import (
 
 	pCommon "github.com/HumXC/shiroko/protos/common"
 	pManager "github.com/HumXC/shiroko/protos/manager"
-	tManager "github.com/HumXC/shiroko/tools/manager"
 	"google.golang.org/grpc"
 )
 
@@ -63,10 +62,9 @@ func (m *managerClient) Install(name string) error {
 }
 
 // List implements manager.IManager.
-func (m *managerClient) List() []string {
+func (m *managerClient) List() ([]string, error) {
 	resp, err := m.mm.List(m.ctx, &pCommon.Empty{})
-	err = ParseError(err) // 此处只能是 grpc 错误，考虑使用日志警告
-	return resp.Names
+	return resp.Names, ParseError(err)
 }
 
 // Uninstall implements manager.IManager.
@@ -75,7 +73,7 @@ func (m *managerClient) Uninstall(name string) error {
 	return ParseError(err)
 }
 
-func initManager(ctx context.Context, conn *grpc.ClientConn) tManager.IManager {
+func initManager(ctx context.Context, conn *grpc.ClientConn) Manager {
 	return &managerClient{
 		mm:  pManager.NewManagerClient(conn),
 		ctx: ctx,

@@ -18,7 +18,7 @@ type serverScreencap struct {
 func (s *serverScreencap) Png(ctx context.Context, req *pScreencap.PngRequest) (*common.DataChunk, error) {
 	result, err := s.screencap.Png(req.DisplayID)
 	if err != nil {
-		return nil, MakeError("failed to screencap", err)
+		return nil, err
 	}
 	return &common.DataChunk{Data: result}, nil
 }
@@ -29,7 +29,7 @@ var _ pScreencap.ScreencapServer = &serverScreencap{}
 func (s *serverScreencap) Displays(ctx context.Context, req *pScreencap.DisplaysRequest) (*pScreencap.DisplaysResponse, error) {
 	result, err := s.screencap.Displays()
 	if err != nil {
-		return nil, MakeError("failed to get displays", err)
+		return nil, err
 	}
 	return &pScreencap.DisplaysResponse{
 		DisplayIDs: result,
