@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -12,6 +13,7 @@ import (
 	"github.com/HumXC/shiroko/server"
 	"github.com/HumXC/shiroko/tools"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slog"
 )
 
 var rootCommand *cobra.Command
@@ -19,7 +21,7 @@ var rootCommand *cobra.Command
 func init() {
 	rootCommand = &cobra.Command{
 		Use: path.Base(os.Args[0]),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			flags := cmd.Flags()
 			address, err := flags.GetString("address")
 			if err != nil {
@@ -30,16 +32,34 @@ func init() {
 				panic(err)
 			}
 			useDaemon, err := flags.GetBool("daemon")
-			mainRun(address, port, useDaemon)
 			if err != nil {
 				panic(err)
 			}
+			loglevel, err := flags.GetString("log-level")
+			if err != nil {
+				panic(err)
+			}
+			switch loglevel {
+			case "debug":
+				logs.SetLevel(slog.LevelDebug)
+			case "info":
+				logs.SetLevel(slog.LevelInfo)
+			case "warn":
+				logs.SetLevel(slog.LevelWarn)
+			case "error":
+				logs.SetLevel(slog.LevelError)
+			default:
+				return errors.New("log-level must be one of (debug|info|warn|error)")
+			}
+			mainRun(address, port, useDaemon)
+			return nil
 		},
 	}
 	flags := rootCommand.Flags()
 	flags.StringP("address", "a", "0.0.0.0", "Listen address")
 	flags.StringP("port", "p", "15600", "Listen port")
 	flags.BoolP("daemon", "d", false, "Run as daemon")
+	flags.StringP("log-level", "l", "info", "Log level (info|debug|warn|error)")
 	rootCommand.AddCommand(&cobra.Command{
 		Use:   "kill",
 		Short: "kill all daemon",
@@ -73,11 +93,12 @@ func mainRun(address, port string, useDaemon bool) {
 			os.Exit(0)
 		}
 	}
+	logs.WriteToStderr()
 	lis, err := net.Listen("tcp", address+":"+port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	serv := server.New()
-	logs.Get().Info("grpc server will lieten to", "address", address, "port", port)
+	logs.Get("main").Info("grpc server will lieten to", "address", address, "port", port)
 	serv.Serve(lis)
 }

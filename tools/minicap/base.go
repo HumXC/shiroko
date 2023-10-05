@@ -88,7 +88,7 @@ func (m *minicapBase) Init() {
 		m.args = append(m.args, "/system/bin", "io.devicefarmer.minicap.Main")
 	}
 	m.files = append(m.files, bin)
-	log.Info("Find minicap", "bin", m.embedBin, "lib", m.embedLib)
+	log.Info("Use minicap", "bin", m.embedBin, "lib", m.embedLib)
 }
 
 func (minicapBase) Getprop() (abi, sdk, rel string) {

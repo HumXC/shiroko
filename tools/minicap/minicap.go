@@ -13,14 +13,9 @@ import (
 	"github.com/HumXC/shiroko/logs"
 	"github.com/HumXC/shiroko/tools/common"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/slog"
 )
 
-var log *slog.Logger
-
-func init() {
-	log = logs.Get()
-}
+var log = logs.Get("minicap")
 
 type Info struct {
 	Id       int32   `json:"id"`

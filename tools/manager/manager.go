@@ -23,7 +23,7 @@ type IManager interface {
 	Files(name string) ([]string, error)
 }
 
-var log = logs.Get()
+var log = logs.Get("manager")
 
 var _ IManager = &ManagerImpl{}
 var Manager *ManagerImpl = nil
