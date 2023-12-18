@@ -3,51 +3,50 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
+	"path"
 	"strings"
-	"syscall"
 
+	"github.com/sevlyar/go-daemon"
 	"github.com/shirou/gopsutil/process"
 )
 
-type Daemonize struct {
-	IAmDaemon bool
-	Pid       int
+func Daemon() (pid int, err error) {
+	exe, err := os.Executable()
+	if err != nil {
+		return
+	}
+	workdir := path.Dir(exe)
+	cntxt := &daemon.Context{
+		PidFileName: path.Join(workdir, "shiroko.pid"),
+		PidFilePerm: 0644,
+		WorkDir:     workdir,
+		Umask:       027,
+		Args:        os.Args,
+	}
+	defer cntxt.Release()
+	proc, err := cntxt.Reborn()
+	if err != nil {
+		err = fmt.Errorf("unable to run: %s", err)
+		return
+	}
+	if proc == nil {
+		return
+	}
+	pid = proc.Pid
+	return
 }
-
-func Daemon() (Daemonize, error) {
-	// 检查程序是否已经是守护进程
-	if os.Getenv("DAEMON") == "true" {
-		return Daemonize{
-			IAmDaemon: true,
-		}, nil
-	}
-	cmd := exec.Command(os.Args[0], os.Args[1:]...)
-	cmd.Env = append(os.Environ(), "DAEMON=true")
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	cmd.Stdin = nil
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setsid: true, // 创建新的会话和新的进程组
-	}
-
-	if err := cmd.Start(); err != nil {
-		return Daemonize{}, fmt.Errorf("failed to daemonize: %w", err)
-	}
-
-	return Daemonize{
-		IAmDaemon: false,
-		Pid:       cmd.Process.Pid,
-	}, nil
-}
-
-func Kill() {
-	selfExe, err := os.Executable()
+func List() {
+	target, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
-
-	// 获取所有进程
+	for _, proc := range findProcess(target) {
+		cmdl, _ := proc.Cmdline()
+		fmt.Println(proc.Pid, cmdl)
+	}
+}
+func findProcess(target string) []*process.Process {
+	result := make([]*process.Process, 0, 1)
 	processes, err := process.Processes()
 	if err != nil {
 		panic(err)
@@ -59,15 +58,21 @@ func Kill() {
 		if err != nil {
 			continue
 		}
-		// 以 Daemon 运行的进程名可能会是 "/data/local/tmp/shiroko (deleted)"
-		exe = strings.TrimSuffix(exe, " (deleted)")
-		if exe == selfExe {
-			pid := proc.Pid
-			// 检查 PID 是否是当前进程
-			if pid != int32(os.Getpid()) {
-				fmt.Printf("Killing process %d with name %s\n", pid, exe)
-				_ = proc.Kill()
-			}
+		if strings.HasPrefix(exe, target) && proc.Pid != int32(os.Getpid()) {
+			result = append(result, proc)
 		}
+	}
+	return result
+}
+func Kill() {
+	target, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	// 遍历所有进程
+	for _, proc := range findProcess(target) {
+		exe, _ := proc.Exe()
+		fmt.Printf("Killing process %s pid is %d\n", exe, proc.Pid)
+		_ = proc.Kill()
 	}
 }

@@ -67,7 +67,13 @@ func init() {
 			Kill()
 		},
 	})
-
+	rootCommand.AddCommand(&cobra.Command{
+		Use:   "list",
+		Short: "list all process",
+		Run: func(cmd *cobra.Command, args []string) {
+			List()
+		},
+	})
 }
 func main() {
 	tools.Init(rootCommand)
@@ -79,16 +85,15 @@ func main() {
 
 func mainRun(address, port string, useDaemon bool) {
 	if useDaemon {
-		daemon, err := Daemon()
+		pid, err := Daemon()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		if !daemon.IAmDaemon {
-			info := map[string]any{
-				"pid": daemon.Pid,
-			}
-			_info, _ := json.MarshalIndent(info, "", "    ")
+		if pid != 0 {
+			_info, _ := json.MarshalIndent(map[string]any{
+				"pid": pid,
+			}, "", "    ")
 			fmt.Println(string(_info))
 			os.Exit(0)
 		}
