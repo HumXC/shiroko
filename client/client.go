@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 
+	"github.com/HumXC/shiroko/tools/input"
 	"github.com/HumXC/shiroko/tools/minicap"
 	"github.com/HumXC/shiroko/tools/screencap"
 	"google.golang.org/grpc"
@@ -13,6 +14,7 @@ type Manager interface {
 	// 返回所有工具的名字
 	List() ([]string, error)
 	// 对应 tools.common.Base
+
 	Health(name string) error
 	Install(name string) error
 	Uninstall(name string) error
@@ -23,11 +25,13 @@ type Manager interface {
 }
 type Minicap = minicap.IMinicap
 type Screencap = screencap.IScreencap
+type Input = input.IInput
 type Client struct {
 	conn      *grpc.ClientConn
 	Screencap Screencap
 	Minicap   Minicap
 	Manager   Manager
+	Input     Input
 }
 
 func New(target string, opts ...grpc.DialOption) (*Client, error) {
@@ -43,6 +47,7 @@ func New(target string, opts ...grpc.DialOption) (*Client, error) {
 		Screencap: initScreencap(ctx, conn),
 		Minicap:   initMinicap(ctx, conn),
 		Manager:   initManager(ctx, conn),
+		Input:     initInput(ctx, conn),
 	}, nil
 }
 func (c *Client) Close() error {

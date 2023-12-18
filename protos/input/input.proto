@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+option go_package = "github.com/HumXC/shiroko/protos/input";
+package input;
+import "protos/common/common.proto";
+
+service Input {
+    rpc Text (TextRequest) returns (common.Empty);
+    rpc Keyevent (KeyeventRequest) returns (common.Empty);
+    rpc Tap (TapRequest) returns (common.Empty);
+    rpc Swipe (SwipeRequest) returns (common.Empty);
+    rpc Draganddrop (DraganddropRequest) returns (common.Empty);
+    rpc Press (PressRequest) returns (common.Empty);
+    rpc Roll (RollRequest) returns (common.Empty);
+    rpc Motionevent (MotioneventRequest) returns (common.Empty);
+  }
+  
+  message TextRequest {
+    string text = 1;
+  }
+  
+  message KeyeventRequest {
+    bool longpress = 1;
+    repeated string keycode = 2;
+  }
+  
+  message TapRequest {
+    int32 x = 1;
+    int32 y = 2;
+  }
+  
+  message SwipeRequest {
+    int32 x1 = 1;
+    int32 y1 = 2;
+    int32 x2 = 3;
+    int32 y2 = 4;
+    int32 duration = 5;
+  }
+  
+  message DraganddropRequest {
+    int32 x1 = 1;
+    int32 y1 = 2;
+    int32 x2 = 3;
+    int32 y2 = 4;
+    int32 duration = 5;
+  }
+  
+  message PressRequest {}
+  
+  message RollRequest {
+    int32 dx = 1;
+    int32 dy = 2;
+  }
+  
+  message MotioneventRequest {
+    string event = 1;
+    int32 x = 2;
+    int32 y = 3;
+  }
