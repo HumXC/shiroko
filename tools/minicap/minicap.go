@@ -94,6 +94,8 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 					o = 180
 				case 3:
 					o = 270
+				default:
+					o = 0
 				}
 			}
 			rate, err := flags.GetInt32("r")
@@ -170,6 +172,8 @@ func (m *MinicapImpl) RegCommand(cmd *cobra.Command) {
 					o = 180
 				case 3:
 					o = 270
+				default:
+					o = 0
 				}
 			}
 			if rw == 0 || rh == 0 {

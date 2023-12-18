@@ -111,7 +111,7 @@ func (s *ScreencapImpl) Displays() ([]string, error) {
 
 func New() *ScreencapImpl {
 	s := &ScreencapImpl{
-		base: &screenBase{cmd: "screencap"},
+		base: &screencapBase{Cmd: "screencap"},
 	}
 	return s
 }
