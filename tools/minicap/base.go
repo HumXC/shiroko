@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/HumXC/shiroko/android"
-	"github.com/HumXC/shiroko/binary"
+	"github.com/HumXC/shiroko/embeds"
 	"github.com/HumXC/shiroko/tools/common"
 )
 
@@ -113,7 +113,7 @@ func (m *minicapBase) Install() error {
 	log.Info("Install minicap")
 	if m.embedBin != "" {
 		log.Info("Copy file", "src", m.embedBin, "dst", m.bin)
-		b, err := binary.Minicap.ReadFile(m.embedBin)
+		b, err := embeds.Minicap.ReadFile(m.embedBin)
 		if err != nil {
 			return err
 		}
@@ -124,7 +124,7 @@ func (m *minicapBase) Install() error {
 	}
 	if m.embedLib != "" {
 		log.Info("Copy file", "src", m.embedLib, "dst", m.lib)
-		b, err := binary.Minicap.ReadFile(m.embedLib)
+		b, err := embeds.Minicap.ReadFile(m.embedLib)
 		if err != nil {
 			return err
 		}
@@ -158,7 +158,7 @@ func (minicapBase) getBin(abi, sdk string) string {
 	}
 	dir := path.Join(abi, "bin")
 	bin := path.Join(dir, name)
-	if !binary.Minicap.IsExist(bin) {
+	if !embeds.Minicap.IsExist(bin) {
 		return "noarch/minicap.apk"
 	}
 	return bin
@@ -167,11 +167,11 @@ func (minicapBase) getBin(abi, sdk string) string {
 func (minicapBase) getLib(abi, sdk, rel string) string {
 	libDir := path.Join(abi, "lib")
 	lib := path.Join(libDir, "android-"+rel)
-	if _, err := binary.Minicap.ReadDir(lib); err == nil {
+	if _, err := embeds.Minicap.ReadDir(lib); err == nil {
 		return path.Join(lib, "minicap.so")
 	}
 	lib = path.Join(libDir, "android-"+sdk)
-	if _, err := binary.Minicap.ReadDir(lib); err == nil {
+	if _, err := embeds.Minicap.ReadDir(lib); err == nil {
 		return path.Join(lib, "minicap.so")
 	}
 	return ""
