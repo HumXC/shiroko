@@ -70,19 +70,13 @@ func (m *minicapClient) Start(rWidth, rHeight, vWidth, vHeight, orientation, rat
 		Orientation: orientation,
 		Rate:        rate,
 	})
-	if err != nil {
-		return ParseError(err)
-	}
-	return nil
+	return ParseError(err)
 }
 
 // Stop implements minicap.IMinicap.
 func (m *minicapClient) Stop() error {
 	_, err := m.mm.Stop(m.ctx, &common.Empty{})
-	if err != nil {
-		return ParseError(err)
-	}
-	return nil
+	return ParseError(err)
 }
 
 func initMinicap(ctx context.Context, conn *grpc.ClientConn) Minicap {

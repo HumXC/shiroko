@@ -46,9 +46,11 @@ func (c *Cmd) FullCmd() string {
 }
 func Command(cmd string, args ...string) *Cmd {
 	_cmd := exec.Command(cmd, args...)
-	return &Cmd{
+	c := &Cmd{
 		Cmd: _cmd,
 	}
+	c.SetEnv(nil)
+	return c
 }
 
 // 去除结尾换行

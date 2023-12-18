@@ -75,3 +75,57 @@ func HealthWithFiles(files []string) error {
 	}
 	return fmt.Errorf("file not exist: [%s]", strings.Join(notFiends, "] ["))
 }
+
+var _ BaseTool = &AndroidCommandBase{}
+
+type AndroidCommandBase struct {
+	Cmd string
+}
+
+// Args implements common.BaseTool.
+func (*AndroidCommandBase) Args() []string {
+	return []string{}
+}
+
+// Description implements common.BaseTool.
+func (b *AndroidCommandBase) Description() string {
+	return "android command \"" + b.Cmd + "\""
+}
+
+// Env implements common.BaseTool.
+func (*AndroidCommandBase) Env() []string {
+	return []string{}
+}
+
+// Exe implements common.BaseTool.
+func (b *AndroidCommandBase) Exe() string {
+	return b.Cmd
+}
+
+// Files implements common.BaseTool.
+func (*AndroidCommandBase) Files() []string {
+	return []string{}
+}
+
+// Health implements common.BaseTool.
+func (b *AndroidCommandBase) Health() error {
+	return CommandHealth(b.Cmd)
+}
+
+// Init implements common.BaseTool.
+func (*AndroidCommandBase) Init() {}
+
+// Install implements common.BaseTool.
+func (*AndroidCommandBase) Install() error {
+	return nil
+}
+
+// Name implements common.BaseTool.
+func (b *AndroidCommandBase) Name() string {
+	return b.Cmd
+}
+
+// Uninstall implements common.BaseTool.
+func (*AndroidCommandBase) Uninstall() error {
+	return nil
+}
