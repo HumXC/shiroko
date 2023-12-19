@@ -29,7 +29,13 @@ func (l *Logger) Output() io.Writer {
 	return l.output
 }
 
-func init() {
+var inited = false
+
+func Init() {
+	if inited {
+		return
+	}
+	inited = true
 	exe, err := os.Executable()
 	if err != nil {
 		panic(err)
@@ -58,6 +64,7 @@ func SetLevel(level slog.Level) {
 }
 
 func Get(tag string) *Logger {
+	Init()
 	h := slog.NewTextHandler(
 		commonOutput,
 		&slog.HandlerOptions{
@@ -72,6 +79,7 @@ func Get(tag string) *Logger {
 }
 
 func File(subdir string) io.Writer {
+	// TODO: 打开一个文件
 	return os.Stderr
 }
 

@@ -23,6 +23,10 @@ func init() {
 		Use: path.Base(os.Args[0]),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			flags := cmd.Flags()
+			name, err := flags.GetString("name")
+			if err != nil {
+				panic(err)
+			}
 			address, err := flags.GetString("address")
 			if err != nil {
 				panic(err)
@@ -51,11 +55,12 @@ func init() {
 			default:
 				return errors.New("log-level must be one of (debug|info|warn|error)")
 			}
-			mainRun(address, port, useDaemon)
+			mainRun(name, address, port, useDaemon)
 			return nil
 		},
 	}
 	flags := rootCommand.Flags()
+	flags.StringP("name", "n", "Shiroko", "A name")
 	flags.StringP("address", "a", "0.0.0.0", "Listen address")
 	flags.StringP("port", "p", "15600", "Listen port")
 	flags.BoolP("daemon", "d", false, "Run as daemon")
@@ -83,7 +88,7 @@ func main() {
 	}
 }
 
-func mainRun(address, port string, useDaemon bool) {
+func mainRun(name, address, port string, useDaemon bool) {
 	if useDaemon {
 		pid, err := Daemon()
 		if err != nil {
@@ -103,7 +108,8 @@ func mainRun(address, port string, useDaemon bool) {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	serv := server.New()
+	serv := server.New(name)
+	defer serv.Stop()
 	logs.Get("main").Info("grpc server will lieten to", "address", address, "port", port)
 	serv.Serve(lis)
 }

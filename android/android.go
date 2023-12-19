@@ -60,3 +60,9 @@ func TrimEnd[T string | []byte](data T) T {
 	}
 	return data
 }
+
+func Model() string {
+	c := Command("getprop", "ro.product.model")
+	model, _ := c.Output()
+	return string(model)
+}

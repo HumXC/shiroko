@@ -8,11 +8,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type Server struct {
-	*serverScreencap
-}
-
-func New() *grpc.Server {
+func newGrpcServer() *grpc.Server {
 	grpcServer := grpc.NewServer()
 	pManager.RegisterManagerServer(grpcServer, NewManagerServer())
 	pScreencap.RegisterScreencapServer(grpcServer, NewScreencapServer())
