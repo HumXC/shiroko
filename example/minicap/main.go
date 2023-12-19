@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	_ "embed"
 	"encoding/binary"
 	"fmt"
@@ -17,11 +18,28 @@ import (
 //go:embed index.html
 var Html []byte
 
-const Target = "192.168.3.252:15600"
 const ServeAddr = "localhost:8080"
 
 func main() {
-	client, err := client.New(Target)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
+	defer cancel()
+	ss, err := client.FindServer(ctx)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if len(ss) == 0 {
+		fmt.Println("No server found")
+		return
+	}
+	for _, s := range ss {
+		fmt.Println("Name:", s.Name)
+		fmt.Println("Model:", s.Model)
+		fmt.Println("Addr:", s.Addr)
+		fmt.Println()
+	}
+
+	client, err := client.New(ss[0].Addr)
 	if err != nil {
 		panic(err)
 	}
