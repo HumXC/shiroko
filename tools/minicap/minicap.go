@@ -15,7 +15,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var log = logs.Get("minicap")
+var log *logs.Logger = nil
+var Minicap *MinicapImpl = nil
+
+func Init() {
+	log = logs.Get("minicap")
+	Minicap = New()
+}
 
 type Info struct {
 	Id       int32   `json:"id"`
@@ -37,8 +43,6 @@ type IMinicap interface {
 	Stop() error
 	Cat() (io.ReadCloser, error)
 }
-
-var Minicap *MinicapImpl = New()
 
 type MinicapImpl struct {
 	base common.BaseTool

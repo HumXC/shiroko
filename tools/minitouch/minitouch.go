@@ -7,7 +7,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Minitouch *MinitouchImpl = New()
+var Minitouch *MinitouchImpl = nil
+
+func Init() {
+	Minitouch = New()
+}
 
 // 高版本要 root，先不实现
 type IMinitouch interface {

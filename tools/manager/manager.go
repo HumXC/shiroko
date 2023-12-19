@@ -23,10 +23,15 @@ type IManager interface {
 	Files(name string) ([]string, error)
 }
 
-var log = logs.Get("manager")
+var log *logs.Logger = nil
+var Manager *ManagerImpl = nil
+
+func Init(rootCmd *cobra.Command) {
+	log = logs.Get("manager")
+	Manager = New(rootCmd)
+}
 
 var _ IManager = &ManagerImpl{}
-var Manager *ManagerImpl = nil
 
 type ManagerImpl struct {
 	rootCmd  *cobra.Command

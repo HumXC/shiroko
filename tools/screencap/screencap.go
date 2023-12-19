@@ -11,7 +11,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var log = logs.Get("screencap")
+var log *logs.Logger = nil
+var Screencap *ScreencapImpl = nil
+
+func Init() {
+	log = logs.Get("screencap")
+	Screencap = New()
+}
 
 // screencap 工具特有的接口
 type IScreencap interface {
@@ -20,8 +26,6 @@ type IScreencap interface {
 	Png(displayID string) ([]byte, error)
 	Displays() ([]string, error)
 }
-
-var Screencap *ScreencapImpl = New()
 
 type ScreencapImpl struct {
 	base common.BaseTool

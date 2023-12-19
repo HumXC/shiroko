@@ -8,7 +8,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Input *InputImpl = New()
+var Input *InputImpl = nil
+
+func Init() {
+	Input = New()
+}
 
 // Default: -1 for key event, 0 for motion event if not specified.
 type IInput interface {
