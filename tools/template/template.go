@@ -5,29 +5,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var XXX *XXXImpl = New()
+var Tool *ToolImpl = nil
 
-type IXXX interface{}
-type XXXImpl struct {
+func Init() {
+	Tool = New()
+}
+
+type ITool interface{}
+type ToolImpl struct {
 	base common.BaseTool
 }
 
-var _ IXXX = &XXXImpl{}
-var _ common.Tool = &XXXImpl{}
-var _ common.UseCommand = &XXXImpl{} // 可选
+var _ ITool = &ToolImpl{}
+var _ common.Tool = &ToolImpl{}
+var _ common.UseCommand = &ToolImpl{} // 可选
 
-func New() *XXXImpl {
-	return &XXXImpl{
+func New() *ToolImpl {
+	return &ToolImpl{
 		// make some data, like base, slice and map.
 	}
 }
 
 // Base implements common.Tool.
-func (x *XXXImpl) Base() common.BaseTool {
+func (x *ToolImpl) Base() common.BaseTool {
 	return x.base
 }
 
 // RegCommand implements common.UseCommand.
-func (*XXXImpl) RegCommand(*cobra.Command) {
+func (*ToolImpl) RegCommand(*cobra.Command) {
 	panic("unimplemented")
 }

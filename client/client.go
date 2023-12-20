@@ -6,6 +6,7 @@ import (
 	"github.com/HumXC/shiroko/tools/input"
 	"github.com/HumXC/shiroko/tools/minicap"
 	"github.com/HumXC/shiroko/tools/screencap"
+	"github.com/HumXC/shiroko/tools/shell"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -26,12 +27,14 @@ type Manager interface {
 type Minicap = minicap.IMinicap
 type Screencap = screencap.IScreencap
 type Input = input.IInput
+type Shell = shell.IShell
 type Client struct {
 	conn      *grpc.ClientConn
 	Screencap Screencap
 	Minicap   Minicap
 	Manager   Manager
 	Input     Input
+	Shell     Shell
 }
 
 func New(target string, opts ...grpc.DialOption) (*Client, error) {
@@ -48,6 +51,7 @@ func New(target string, opts ...grpc.DialOption) (*Client, error) {
 		Minicap:   initMinicap(ctx, conn),
 		Manager:   initManager(ctx, conn),
 		Input:     initInput(ctx, conn),
+		Shell:     initShell(ctx, conn),
 	}, nil
 }
 func (c *Client) Close() error {

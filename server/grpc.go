@@ -5,6 +5,7 @@ import (
 	pManager "github.com/HumXC/shiroko/protos/manager"
 	pMinicap "github.com/HumXC/shiroko/protos/minicap"
 	pScreencap "github.com/HumXC/shiroko/protos/screencap"
+	pShell "github.com/HumXC/shiroko/protos/shell"
 	"google.golang.org/grpc"
 )
 
@@ -14,5 +15,6 @@ func newGrpcServer() *grpc.Server {
 	pScreencap.RegisterScreencapServer(grpcServer, NewScreencapServer())
 	pMinicap.RegisterMinicapServer(grpcServer, NewMinicapServer())
 	pInput.RegisterInputServer(grpcServer, NewInputServer())
+	pShell.RegisterShellServer(grpcServer, NewShellServer())
 	return grpcServer
 }

@@ -4,8 +4,8 @@ import (
 	"github.com/HumXC/shiroko/tools/input"
 	"github.com/HumXC/shiroko/tools/manager"
 	"github.com/HumXC/shiroko/tools/minicap"
-	"github.com/HumXC/shiroko/tools/minitouch"
 	"github.com/HumXC/shiroko/tools/screencap"
+	"github.com/HumXC/shiroko/tools/shell"
 	"github.com/spf13/cobra"
 )
 
@@ -13,12 +13,13 @@ import (
 func Init(cmd *cobra.Command) {
 	manager.Init(cmd)
 	input.Init()
-	minicap.Init()
-	minicap.Init()
-	minitouch.Init()
+	shell.Init()
 	screencap.Init()
+	minicap.Init()
 
-	manager.Manager.Register(minicap.Minicap)
+	manager.Manager.Register(input.Input)
+	manager.Manager.Register(shell.Shell)
 	manager.Manager.Register(screencap.Screencap)
+	manager.Manager.Register(minicap.Minicap)
 	manager.Manager.SetCommand()
 }

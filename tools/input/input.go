@@ -5,7 +5,6 @@ import (
 
 	"github.com/HumXC/shiroko/android"
 	"github.com/HumXC/shiroko/tools/common"
-	"github.com/spf13/cobra"
 )
 
 var Input *InputImpl = nil
@@ -115,6 +114,3 @@ func New() *InputImpl {
 func (i *InputImpl) Base() common.BaseTool {
 	return i.base
 }
-
-// RegCommand implements common.UseCommand.
-func (i *InputImpl) RegCommand(cob *cobra.Command) {}

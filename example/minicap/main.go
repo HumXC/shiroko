@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	_ "embed"
 	"encoding/binary"
 	"fmt"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/HumXC/shiroko/client"
+	"github.com/HumXC/shiroko/example"
 	"github.com/HumXC/shiroko/tools/minicap"
 	"github.com/gorilla/websocket"
 )
@@ -21,24 +21,10 @@ var Html []byte
 const ServeAddr = "localhost:8080"
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
-	defer cancel()
-	ss, err := client.FindServer(ctx)
+	ss, err := example.FindServer()
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
-	if len(ss) == 0 {
-		fmt.Println("No server found")
-		return
-	}
-	for _, s := range ss {
-		fmt.Println("Name:", s.Name)
-		fmt.Println("Model:", s.Model)
-		fmt.Println("Addr:", s.Addr)
-		fmt.Println()
-	}
-
 	client, err := client.New(ss[0].Addr)
 	if err != nil {
 		panic(err)

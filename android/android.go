@@ -22,6 +22,9 @@ type Cmd struct {
 
 func (c *Cmd) Output() ([]byte, error) {
 	reader, err := c.OutputReader()
+	if err != nil {
+		return nil, err
+	}
 	b, _ := io.ReadAll(reader)
 	return TrimEnd(b), err
 }
@@ -32,8 +35,8 @@ func (c *Cmd) OutputReader() (io.Reader, error) {
 	c.Stdout = stdout
 	err := c.Cmd.Run()
 	if err != nil {
-		err = fmt.Errorf("%w: stderr: %s", err, strings.TrimRight(stderr.String(), "\r\n"))
-		return stdout, err
+		err = fmt.Errorf("%w: stderr: %sstdout: %s", err, strings.TrimRight(stderr.String(), "\n"), strings.TrimRight(stdout.String(), "\n"))
+		return nil, err
 	}
 	return stdout, nil
 }
@@ -55,7 +58,7 @@ func Command(cmd string, args ...string) *Cmd {
 
 // 去除结尾换行
 func TrimEnd[T string | []byte](data T) T {
-	if len(data) > 1 && (data[len(data)-1] == '\n' || data[len(data)-1] == '\r') {
+	if len(data) > 1 && (data[len(data)-1] == '\n') {
 		return data[:len(data)-1]
 	}
 	return data

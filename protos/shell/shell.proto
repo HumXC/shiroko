@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+option go_package = "github.com/HumXC/shiroko/protos/shell";
+package shell;
+import "protos/common/common.proto";
+
+// 定义 IShell 接口
+service Shell {
+  rpc Run (RunRequest) returns (common.DataChunk);
+  rpc Push (stream PushRequest) returns (common.Empty );
+  rpc Pull (PullRequest) returns (stream common.DataChunk);
+  rpc HttpGet (HttpGetRequest) returns (common.Empty);
+  rpc Install (InstallRequest) returns (common.Empty);
+  rpc Uninstall (UninstallRequest) returns (common.Empty);
+  rpc ListApps (common.Empty) returns (ListAppsResponse);
+  rpc StartApp (StartAppRequest) returns (common.Empty);
+  rpc StopApp (StopAppRequest) returns (common.Empty);
+  rpc Getprop (GetpropRequest) returns (GetpropResponse);
+}
+
+message RunRequest {
+  string cmd = 1;
+  int32 timeout_ms = 2;
+}
+
+message PushRequest {
+  bytes data = 1;
+  string filename = 2;
+}
+
+message PullRequest {
+  string filename = 1;
+}
+
+message HttpGetRequest {
+  string url = 1;
+  string dist = 2;
+  int32 timeout_ms = 3;
+}
+
+message InstallRequest {
+  string apkpath = 1;
+}
+
+message UninstallRequest {
+  string pkgname = 1;
+}
+
+message ListAppsResponse {
+  repeated string apps = 1;
+}
+
+message StartAppRequest {
+  string active = 1;
+}
+
+message StopAppRequest {
+  string pkgname = 1;
+}
+
+message GetpropRequest {
+  string key = 1;
+}
+
+message GetpropResponse {
+  string value = 1;
+}

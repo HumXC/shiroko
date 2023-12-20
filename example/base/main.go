@@ -1,34 +1,20 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/HumXC/shiroko/client"
+	"github.com/HumXC/shiroko/example"
 )
 
 const ADDRESS = "192.168.3.252:15600"
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
-	defer cancel()
-	ss, err := client.FindServer(ctx)
+	ss, err := example.FindServer()
 	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	if len(ss) == 0 {
-		fmt.Println("No server found")
-		return
-	}
-	for _, s := range ss {
-		fmt.Println("Name:", s.Name)
-		fmt.Println("Model:", s.Model)
-		fmt.Println("Addr:", s.Addr)
-		fmt.Println()
+		log.Fatal(err)
 	}
 	client, err := client.New(ss[0].Addr)
 	if err != nil {
