@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -27,7 +26,6 @@ type IShell interface {
 	Run(cmd string, timeoutMs int32) ([]byte, error)
 	Push(filename string, data io.Reader) error
 	Pull(filename string) (io.ReadCloser, error)
-	HttpGet(url, dist string, timeoutMs int32) error
 	Install(apkpath string) error
 	Uninstall(pkgname string) error
 	// pm list packages
@@ -41,23 +39,6 @@ type IShell interface {
 }
 type ShellImpl struct {
 	base common.BaseTool
-}
-
-// HttpGet implements IShell.
-func (*ShellImpl) HttpGet(url string, dist string, timeout int32) error {
-	client := http.Client{Timeout: time.Duration(timeout) * time.Millisecond}
-	resp, err := client.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	f, err := os.Create(dist)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	_, err = io.Copy(f, resp.Body)
-	return err
 }
 
 // Getprop implements IShell.

@@ -137,12 +137,6 @@ func (s *serverShell) Push(serv pShell.Shell_PushServer) error {
 	return err
 }
 
-// HttpGet implements shell.ShellServer.
-func (s *serverShell) HttpGet(ctx context.Context, req *pShell.HttpGetRequest) (*common.Empty, error) {
-	err := s.shell.HttpGet(req.Url, req.Dist, req.TimeoutMs)
-	return &common.Empty{}, err
-}
-
 // Getprop implements shell.ShellServer.
 func (s *serverShell) Getprop(ctx context.Context, req *pShell.GetpropRequest) (*pShell.GetpropResponse, error) {
 	val, err := s.shell.Getprop(req.Key)

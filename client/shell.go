@@ -14,16 +14,6 @@ type shellClient struct {
 	ctx context.Context
 }
 
-// HttpGet implements shell.IShell.
-func (s *shellClient) HttpGet(url string, dist string, timeoutMs int32) error {
-	_, err := s.sc.HttpGet(s.ctx, &pShell.HttpGetRequest{
-		Url:       url,
-		Dist:      dist,
-		TimeoutMs: timeoutMs,
-	})
-	return ParseError(err)
-}
-
 // Getprop implements shell.IShell.
 func (s *shellClient) Getprop(key string) (string, error) {
 	resp, err := s.sc.Getprop(s.ctx, &pShell.GetpropRequest{Key: key})
