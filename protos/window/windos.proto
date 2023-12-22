@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = "github.com/HumXC/shiroko/protos/window";
+package window;
+import "protos/common/common.proto";
+message Size {
+  int32 width = 1;
+  int32 height = 2;
+}
+
+message Rotation {
+  bool lock = 1;
+  int32 rotation = 2;
+}
+
+message Density {
+  int32 density = 1;
+}
+
+service Window {
+  rpc GetSize(common.Empty) returns (Size);
+  rpc SetSize(Size) returns (common.Empty);
+  rpc GetDensity(common.Empty) returns (Density);
+  rpc SetDensity(Density) returns (common.Empty);
+  rpc ResetSize(common.Empty) returns (common.Empty);
+  rpc ResetDensity(common.Empty) returns (common.Empty);
+  rpc SetRotation(Rotation) returns (common.Empty);
+}
