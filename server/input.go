@@ -32,18 +32,6 @@ func (s *serverInput) Motionevent(ctx context.Context, req *pInput.MotioneventRe
 	return &common.Empty{}, err
 }
 
-// Press implements input.InputServer.
-func (s *serverInput) Press(ctx context.Context, req *pInput.PressRequest) (*common.Empty, error) {
-	err := s.input.Press()
-	return &common.Empty{}, err
-}
-
-// Roll implements input.InputServer.
-func (s *serverInput) Roll(ctx context.Context, req *pInput.RollRequest) (*common.Empty, error) {
-	err := s.input.Roll(req.Dx, req.Dy)
-	return &common.Empty{}, err
-}
-
 // Swipe implements input.InputServer.
 func (s *serverInput) Swipe(ctx context.Context, req *pInput.SwipeRequest) (*common.Empty, error) {
 	err := s.input.Swipe(req.X1, req.Y1, req.X2, req.Y2, req.Duration)

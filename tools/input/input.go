@@ -25,10 +25,6 @@ type IInput interface {
 	Swipe(x1, y1, x2, y2 int32, duration int32) error
 	// draganddrop <x1> <y1> <x2> <y2> [duration(ms)] (Default: touchscreen)
 	Draganddrop(x1, y1, x2, y2 int32, duration int32) error
-	// press (Default: trackball)
-	Press() error
-	// roll <dx> <dy> (Default: trackball)
-	Roll(dx, dy int32) error
 	// motionevent <DOWN|UP|MOVE> <x> <y> (Default: touchscreen)
 	Motionevent(event string, x, y int32) error
 }
@@ -61,16 +57,6 @@ func (i *InputImpl) Keyevent(longpress bool, keycode ...string) error {
 // Motionevent implements IInput.
 func (i *InputImpl) Motionevent(event string, x int32, y int32) error {
 	return i.run([]string{"motionevent", event, strconv.Itoa(int(x)), strconv.Itoa(int(y))})
-}
-
-// Press implements IInput.
-func (i *InputImpl) Press() error {
-	return i.run([]string{"press"})
-}
-
-// Roll implements IInput.
-func (i *InputImpl) Roll(dx int32, dy int32) error {
-	return i.run([]string{"roll", strconv.Itoa(int(dx)), strconv.Itoa(int(dy))})
 }
 
 // Swipe implements IInput.

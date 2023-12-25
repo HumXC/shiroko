@@ -15,8 +15,8 @@ type serverScreencap struct {
 }
 
 // Png implements screencap.ScreencapServer.
-func (s *serverScreencap) Png(ctx context.Context, req *pScreencap.PngRequest) (*common.DataChunk, error) {
-	result, err := s.screencap.Png(req.DisplayID)
+func (s *serverScreencap) Png(ctx context.Context, req *common.Empty) (*common.DataChunk, error) {
+	result, err := s.screencap.Png()
 	if err != nil {
 		return nil, err
 	}
@@ -24,17 +24,6 @@ func (s *serverScreencap) Png(ctx context.Context, req *pScreencap.PngRequest) (
 }
 
 var _ pScreencap.ScreencapServer = &serverScreencap{}
-
-// Displays implements screencap.ScreencapServiceServer.
-func (s *serverScreencap) Displays(ctx context.Context, req *pScreencap.DisplaysRequest) (*pScreencap.DisplaysResponse, error) {
-	result, err := s.screencap.Displays()
-	if err != nil {
-		return nil, err
-	}
-	return &pScreencap.DisplaysResponse{
-		DisplayIDs: result,
-	}, nil
-}
 
 func NewScreencapServer() *serverScreencap {
 	return &serverScreencap{

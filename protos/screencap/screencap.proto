@@ -5,16 +5,5 @@ package screencap;
 import "protos/common/common.proto";
 
 service Screencap {
-    rpc Displays(DisplaysRequest) returns (DisplaysResponse);
-    rpc Png(PngRequest) returns (common.DataChunk);
-}
-
-message DisplaysRequest {}
-
-message DisplaysResponse {
-    repeated string displayIDs = 1;
-}
-
-message PngRequest {
-    string displayID = 1;
+    rpc Png(common.Empty) returns (common.DataChunk);
 }

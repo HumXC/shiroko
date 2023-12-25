@@ -44,7 +44,7 @@ message ListAppsResponse {
 }
 
 message StartAppRequest {
-  string active = 1;
+  string activity = 1;
 }
 
 message StopAppRequest {

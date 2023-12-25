@@ -143,10 +143,9 @@ func (s *ShellImpl) Run(cmd string, timeout int32) ([]byte, error) {
 }
 
 // StartApp implements IShell.
-func (s *ShellImpl) StartApp(active string) error {
-	c := android.Command("am", "start", "-n", active)
-	out, err := c.Output()
-	fmt.Println(out)
+func (s *ShellImpl) StartApp(activity string) error {
+	c := android.Command("am", "start", "-n", activity)
+	_, err := c.Output()
 	return err
 }
 

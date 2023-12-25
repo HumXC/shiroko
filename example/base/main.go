@@ -33,7 +33,7 @@ func main() {
 			fmt.Printf("工具[%s]可用\n", name)
 		}
 	}
-	png, err := client.Screencap.Png("")
+	png, err := client.Screencap.Png()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -10,8 +10,6 @@ service Input {
     rpc Tap (TapRequest) returns (common.Empty);
     rpc Swipe (SwipeRequest) returns (common.Empty);
     rpc Draganddrop (DraganddropRequest) returns (common.Empty);
-    rpc Press (PressRequest) returns (common.Empty);
-    rpc Roll (RollRequest) returns (common.Empty);
     rpc Motionevent (MotioneventRequest) returns (common.Empty);
   }
   
@@ -43,13 +41,6 @@ service Input {
     int32 x2 = 3;
     int32 y2 = 4;
     int32 duration = 5;
-  }
-  
-  message PressRequest {}
-  
-  message RollRequest {
-    int32 dx = 1;
-    int32 dy = 2;
   }
   
   message MotioneventRequest {

@@ -43,21 +43,6 @@ func (i *inputClient) Motionevent(event string, x int32, y int32) error {
 	return ParseError(err)
 }
 
-// Press implements input.IInput.
-func (i *inputClient) Press() error {
-	_, err := i.ic.Press(i.ctx, &pInput.PressRequest{})
-	return ParseError(err)
-}
-
-// Roll implements input.IInput.
-func (i *inputClient) Roll(dx int32, dy int32) error {
-	_, err := i.ic.Roll(i.ctx, &pInput.RollRequest{
-		Dx: dx,
-		Dy: dy,
-	})
-	return ParseError(err)
-}
-
 // Swipe implements input.IInput.
 func (i *inputClient) Swipe(x1 int32, y1 int32, x2 int32, y2 int32, duration int32) error {
 	_, err := i.ic.Swipe(i.ctx, &pInput.SwipeRequest{

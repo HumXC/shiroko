@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 
+	"github.com/HumXC/shiroko/protos/common"
 	pScreencap "github.com/HumXC/shiroko/protos/screencap"
 	"google.golang.org/grpc"
 )
@@ -12,20 +13,9 @@ type screencapClient struct {
 	ctx context.Context
 }
 
-// Displays implements screencap.IScreencap.
-func (s *screencapClient) Displays() ([]string, error) {
-	resp, err := s.sc.Displays(s.ctx, &pScreencap.DisplaysRequest{})
-	if err != nil {
-		return nil, ParseError(err)
-	}
-	return resp.DisplayIDs, nil
-}
-
 // Png implements screencap.IScreencap.
-func (s *screencapClient) Png(displayID string) ([]byte, error) {
-	resp, err := s.sc.Png(s.ctx, &pScreencap.PngRequest{
-		DisplayID: displayID,
-	})
+func (s *screencapClient) Png() ([]byte, error) {
+	resp, err := s.sc.Png(s.ctx, &common.Empty{})
 	if err != nil {
 		return nil, ParseError(err)
 	}

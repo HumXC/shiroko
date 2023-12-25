@@ -70,7 +70,7 @@ type serverShell struct {
 func (s *serverShell) Pull(req *pShell.PullRequest, serv pShell.Shell_PullServer) error {
 	data, err := s.shell.Pull(req.Filename)
 	if err != nil {
-		return nil
+		return err
 	}
 	defer data.Close()
 	buf := make([]byte, 1024)
@@ -163,7 +163,7 @@ func (s *serverShell) Run(ctx context.Context, req *pShell.RunRequest) (*common.
 
 // StartApp implements shell.ShellServer.
 func (s *serverShell) StartApp(ctx context.Context, req *pShell.StartAppRequest) (*common.Empty, error) {
-	err := s.shell.StartApp(req.Active)
+	err := s.shell.StartApp(req.Activity)
 	return &common.Empty{}, err
 }
 

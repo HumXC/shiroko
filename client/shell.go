@@ -91,8 +91,8 @@ func (s *shellClient) Run(cmd string, timeoutMs int32) ([]byte, error) {
 }
 
 // StartApp implements shell.IShell.
-func (s *shellClient) StartApp(active string) error {
-	_, err := s.sc.StartApp(s.ctx, &pShell.StartAppRequest{Active: active})
+func (s *shellClient) StartApp(activity string) error {
+	_, err := s.sc.StartApp(s.ctx, &pShell.StartAppRequest{Activity: activity})
 	return ParseError(err)
 }
 
