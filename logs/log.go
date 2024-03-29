@@ -16,9 +16,9 @@ func Dir() string {
 	return dir
 }
 
-var programLevel = new(slog.LevelVar)
+var level = slog.LevelInfo
 
-var commonOutput io.Writer
+var commonOutput io.Writer = os.Stderr
 
 type Logger struct {
 	output io.Writer
@@ -31,11 +31,15 @@ func (l *Logger) Output() io.Writer {
 
 var inited = false
 
-func Init() {
+func Init(logLevel slog.Level, outputToFile bool) {
 	if inited {
 		return
 	}
 	inited = true
+	level = logLevel
+	if !outputToFile {
+		return
+	}
 	exe, err := os.Executable()
 	if err != nil {
 		panic(err)
@@ -55,20 +59,17 @@ func Init() {
 	if err != nil {
 		panic(err)
 	}
-	commonOutput = f
-	SetLevel(slog.LevelInfo)
-}
-
-func SetLevel(level slog.Level) {
-	programLevel.Set(level)
+	commonOutput = io.MultiWriter(os.Stderr, f)
 }
 
 func Get(tag string) *Logger {
-	Init()
+	if !inited {
+		panic("logs.Init() not called")
+	}
 	h := slog.NewTextHandler(
 		commonOutput,
 		&slog.HandlerOptions{
-			Level: programLevel,
+			Level: level,
 		},
 	)
 
@@ -76,14 +77,4 @@ func Get(tag string) *Logger {
 		output: commonOutput,
 		Logger: slog.New(h).With("tag", tag),
 	}
-}
-
-func File(subdir string) io.Writer {
-	// TODO: 打开一个文件
-	return os.Stderr
-}
-
-// 同时输出到 os.Stderr
-func WriteToStderr() {
-	commonOutput = io.MultiWriter(os.Stderr, commonOutput)
 }

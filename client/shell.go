@@ -108,6 +108,12 @@ func (s *shellClient) Uninstall(pkgname string) error {
 	return ParseError(err)
 }
 
+// GetAppImportance implements shell.IShell.
+func (s *shellClient) GetAppImportance(pkgname string) (int32, error) {
+	val, err := s.sc.GetAppImportance(s.ctx, &pShell.GetAppImportanceRequest{Pkgname: pkgname})
+	return val.Importance, ParseError(err)
+}
+
 func initShell(ctx context.Context, conn *grpc.ClientConn) Shell {
 	return &shellClient{
 		sc:  pShell.NewShellClient(conn),

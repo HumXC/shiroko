@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -36,6 +37,9 @@ type IShell interface {
 	StopApp(pkgname string) error
 	// getprop
 	Getprop(key string) (string, error)
+	// am package-importance
+	// 返回值见: https://developer.android.com/reference/android/app/ActivityManager.RunningAppProcessInfo#IMPORTANCE_FOREGROUND
+	GetAppImportance(pkgname string) (int32, error)
 }
 type ShellImpl struct {
 	base common.BaseTool
@@ -164,6 +168,17 @@ func (s *ShellImpl) Uninstall(pkgname string) error {
 		return err
 	}
 	return nil
+}
+
+// GetAppImportance implements IShell.
+func (s *ShellImpl) GetAppImportance(pkgname string) (int32, error) {
+	c := android.Command("am", "package-importance", pkgname)
+	out, err := c.Output()
+	if err != nil {
+		return 0, err
+	}
+	val, err := strconv.Atoi(string(out))
+	return int32(val), err
 }
 
 var _ IShell = &ShellImpl{}

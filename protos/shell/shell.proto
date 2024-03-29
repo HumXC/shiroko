@@ -15,6 +15,7 @@ service Shell {
   rpc StartApp (StartAppRequest) returns (common.Empty);
   rpc StopApp (StopAppRequest) returns (common.Empty);
   rpc Getprop (GetpropRequest) returns (GetpropResponse);
+  rpc GetAppImportance(GetAppImportanceRequest) returns (GetAppImportanceResponse);
 }
 
 message RunRequest {
@@ -57,4 +58,12 @@ message GetpropRequest {
 
 message GetpropResponse {
   string value = 1;
+}
+
+message GetAppImportanceRequest {
+  string pkgname = 1;
+}
+
+message GetAppImportanceResponse {
+  int32 importance=1;
 }

@@ -179,6 +179,12 @@ func (s *serverShell) Uninstall(ctx context.Context, req *pShell.UninstallReques
 	return &common.Empty{}, err
 }
 
+// GetAppImportance implements shell.ShellServer.
+func (s *serverShell) GetAppImportance(ctx context.Context, req *pShell.GetAppImportanceRequest) (*pShell.GetAppImportanceResponse, error) {
+	val, err := s.shell.GetAppImportance(req.Pkgname)
+	return &pShell.GetAppImportanceResponse{Importance: val}, err
+}
+
 var _ pShell.ShellServer = &serverShell{}
 
 func NewShellServer() *serverShell {

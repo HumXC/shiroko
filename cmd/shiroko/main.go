@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -39,22 +38,6 @@ func init() {
 			if err != nil {
 				panic(err)
 			}
-			loglevel, err := flags.GetString("log-level")
-			if err != nil {
-				panic(err)
-			}
-			switch loglevel {
-			case "debug":
-				logs.SetLevel(slog.LevelDebug)
-			case "info":
-				logs.SetLevel(slog.LevelInfo)
-			case "warn":
-				logs.SetLevel(slog.LevelWarn)
-			case "error":
-				logs.SetLevel(slog.LevelError)
-			default:
-				return errors.New("log-level must be one of (debug|info|warn|error)")
-			}
 			mainRun(name, address, port, useDaemon)
 			return nil
 		},
@@ -64,7 +47,7 @@ func init() {
 	flags.StringP("address", "a", "0.0.0.0", "Listen address")
 	flags.StringP("port", "p", "15600", "Listen port")
 	flags.BoolP("daemon", "d", false, "Run as daemon")
-	flags.StringP("log-level", "l", "info", "Log level (info|debug|warn|error)")
+	flags.StringP("log-level", "l", "info", "Log level (debug|warn|error)")
 	rootCommand.AddCommand(&cobra.Command{
 		Use:   "kill",
 		Short: "kill all daemon",
@@ -81,10 +64,34 @@ func init() {
 	})
 }
 func main() {
-	tools.Init(rootCommand)
-	err := rootCommand.Execute()
+	flags := rootCommand.Flags()
+	flags.Parse(os.Args[1:])
+	useDaemon, err := flags.GetBool("daemon")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
+	}
+	loglevel, err := flags.GetString("log-level")
+	if err != nil {
+		panic(err)
+	}
+	level := slog.LevelInfo
+	switch loglevel {
+	case "info":
+		level = slog.LevelInfo
+	case "debug":
+		level = slog.LevelDebug
+	case "warn":
+		level = slog.LevelWarn
+	case "error":
+		level = slog.LevelError
+	default:
+		panic("log-level must be one of (debug|warn|error)")
+	}
+	logs.Init(level, useDaemon)
+	tools.Init(rootCommand)
+	err = rootCommand.Execute()
+	if err != nil {
+		logs.Get("main").Error("Command error", "error", err)
 	}
 }
 
@@ -103,7 +110,6 @@ func mainRun(name, address, port string, useDaemon bool) {
 			os.Exit(0)
 		}
 	}
-	logs.WriteToStderr()
 	lis, err := net.Listen("tcp", address+":"+port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
