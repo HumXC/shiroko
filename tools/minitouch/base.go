@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/HumXC/shiroko/android"
-	"github.com/HumXC/shiroko/embeds"
+	"github.com/HumXC/shiroko/blob"
 	"github.com/HumXC/shiroko/tools/common"
 )
 
@@ -64,10 +64,10 @@ func (m *minitouchBase) Init() {
 
 // Install implements common.BaseTool.
 func (m *minitouchBase) Install() error {
-	if !embeds.Minitouch.IsExist(m.embedBin) {
+	if !blob.Minitouch.IsExist(m.embedBin) {
 		return errors.New("binary not found: " + m.embedBin)
 	}
-	b, err := embeds.Minitouch.ReadFile(m.embedBin)
+	b, err := blob.Minitouch.ReadFile(m.embedBin)
 	if err != nil {
 		return err
 	}

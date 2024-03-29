@@ -278,7 +278,7 @@ func (m *MinicapImpl) Start(rWidth, rHeight, vWidth, vHeight, orientation, rate 
 	cmd := android.Command(m.base.Exe(), args...)
 	cmd.SetEnv(m.base.Env())
 	log.Debug("Run command", "command", cmd.FullCmd())
-	out := logs.File("nimicap")
+	out := log.Output()
 	cmd.Stderr = out
 	cmd.Stdout = out
 	err = cmd.Start()

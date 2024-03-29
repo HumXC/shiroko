@@ -1,4 +1,4 @@
-package embeds
+package blob
 
 import (
 	"embed"

@@ -1,6 +1,3 @@
-[submodule "binary/stf-binaries"]
-path = binary/stf-binaries
-url = https://github.com/openatx/stf-binaries
-[submodule "embeds/stf-binaries"]
-	path = embeds/stf-binaries
-	url = https://github.com/openatx/stf-binaries
+[submodule "blob/stf-binaries"]
+path = blob/stf-binaries
+url = https://github.com/openatx/stf-binaries.git
