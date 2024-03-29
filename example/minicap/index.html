@@ -2,23 +2,59 @@
 <html>
     <head>
         <title>Minicap Stream</title>
+        <style>
+            #canvas-container {
+                position: relative;
+            }
+
+            #tooltip {
+                position: absolute;
+                display: none;
+                background-color: #fff;
+                padding: 5px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+        </style>
     </head>
     <body>
-        <canvas id="minicapCanvas"></canvas>
+        <div id="canvas-container">
+            <canvas id="minicapCanvas"></canvas>
+            <div id="tooltip"></div>
+        </div>
         <script>
             const canvas = document.getElementById("minicapCanvas");
             const ctx = canvas.getContext("2d");
             const ws = new WebSocket("ws://localhost:8080/ws");
+            var tooltip = document.getElementById("tooltip");
 
+            canvas.addEventListener("mousemove", function (event) {
+                var mouseX = Math.floor(event.clientX - canvas.getBoundingClientRect().left);
+                var mouseY = Math.floor(event.clientY - canvas.getBoundingClientRect().top);
+
+                // 更新 tooltip 内容和位置
+                tooltip.innerHTML = "X: " + mouseX + ", Y: " + mouseY;
+                tooltip.style.left = mouseX + 5 + "px";
+                tooltip.style.top = mouseY - 5 + "px";
+
+                // 显示 tooltip
+                tooltip.style.display = "block";
+            });
+            canvas.addEventListener("mouseout", function () {
+                // 隐藏 tooltip
+                tooltip.style.display = "none";
+            });
             ws.onmessage = function (event) {
                 const image = new Image();
                 const blob = new Blob([event.data], { type: "image/jpeg" });
                 image.src = URL.createObjectURL(blob);
-
                 image.onload = function () {
                     canvas.width = image.width;
                     canvas.height = image.height;
                     ctx.drawImage(image, 0, 0);
+                    image.remove();
+                    URL.revokeObjectURL(image.src);
                 };
             };
         </script>

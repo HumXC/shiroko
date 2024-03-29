@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	_ "embed"
 	"encoding/binary"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 
 //go:embed index.html
 var Html []byte
+var cancel context.CancelFunc = func() {}
 
 const ServeAddr = "localhost:8080"
 
@@ -29,6 +31,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer client.Close()
 	// 检查 minicap 是否安装
 	err = client.Manager.Health("minicap")
 	if err != nil {
@@ -84,6 +87,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 }
 func handleConnection(chFrame <-chan []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		cancel()
 		defer w.Header().Clone()
 		fmt.Println("处理连接")
 		conn, err := upgrader.Upgrade(w, r, nil)
@@ -92,20 +96,34 @@ func handleConnection(chFrame <-chan []byte) http.HandlerFunc {
 			return
 		}
 		defer conn.Close()
-
+		ctx, cancel_ := context.WithCancel(context.Background())
+		cancel = func() {
+			conn.Close()
+			cancel_()
+		}
+		defer cancel_()
+	loop:
 		for {
-			frame := <-chFrame
-			err := conn.WriteMessage(websocket.BinaryMessage, frame)
-			if err != nil {
-				fmt.Println(err)
-				break
+			select {
+			case <-ctx.Done():
+				fmt.Println("重复连接")
+				break loop
+			default:
+				frame := <-chFrame
+				err := conn.WriteMessage(websocket.BinaryMessage, frame)
+				if err != nil {
+					fmt.Println(err)
+					break loop
+				}
 			}
+
 		}
 	}
 }
 
 func ParseMinicap(reader io.Reader, ch chan<- []byte) {
 	var globalHeader GlobalHeader
+	fmt.Println("Read Header")
 	if err := binary.Read(reader, binary.LittleEndian, &globalHeader); err != nil {
 		log.Fatal(err)
 	}
@@ -132,6 +150,7 @@ func GetMinicap(m minicap.IMinicap) (io.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
+	time.Sleep(3 * time.Second)
 	// 获取屏幕信息
 	info, err := m.Info()
 	if err != nil {

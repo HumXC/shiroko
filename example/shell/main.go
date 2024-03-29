@@ -27,6 +27,10 @@ func main() {
 	for _, key := range keys {
 		GetProp(shiroko, key)
 	}
+	_, err = shiroko.Shell.Run("input tap 10 10", 0)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func GetProp(shiroko *client.Client, key string) {
